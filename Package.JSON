@@ -1,0 +1,11 @@
+{
+  "name": "evercred-prototype",
+  "version": "6.0.0",
+  "description": "Evercred credential verification prototype for user research",
+  "scripts": {
+    "start": "npx serve -s . -l ${PORT:-3000}"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
