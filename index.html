@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evercred Credential Verification - Prototype v5.1</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up { animation: slide-up 0.3s ease-out; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .animate-spin { animation: spin 1s linear infinite; }
+    @keyframes pulse { 50% { opacity: .5; } }
+    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes slide-in-right {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .animate-slide-in-right { animation: slide-in-right 0.3s ease-out; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Icon components using Lucide
+    const Icon = ({ name, className = "" }) => {
+      const ref = React.useRef(null);
+      useEffect(() => {
+        if (ref.current) {
+          ref.current.innerHTML = '';
+          const icon = lucide.createElement(lucide.icons[name]);
+          ref.current.appendChild(icon);
+        }
+      }, [name]);
+      return <span ref={ref} className={`inline-flex ${className}`} style={{ width: '1em', height: '1em' }} />;
+    };
+
+    // Request Credentials Modal
+    function RequestCredentialsModal({ isOpen, onClose, onSubmit, physicianName }) {
+      const [selectedCredentials, setSelectedCredentials] = useState([]);
+      const [note, setNote] = useState('');
+      const [requestDate, setRequestDate] = useState(new Date().toISOString().split('T')[0]);
+
+      const availableCredentials = [
+        'Medical Degree',
+        'DEA Registration',
+        'Fellowship',
+        'CME/CE',
+        'BLS',
+        'ACLS',
+        'PALS',
+        'Malpractice Insurance',
+        'Board Certification',
+        'References',
+        'Work History',
+        'Hospital Privileges'
+      ];
+
+      const handleToggle = (cred) => {
+        setSelectedCredentials(prev =>
+          prev.includes(cred) ? prev.filter(c => c !== cred) : [...prev, cred]
+        );
+      };
+
+      const handleSubmit = () => {
+        if (selectedCredentials.length > 0) {
+          onSubmit({
+            credentials: selectedCredentials,
+            note: note,
+            date: requestDate
+          });
+          setSelectedCredentials([]);
+          setNote('');
+          onClose();
+        }
+      };
+
+      if (!isOpen) return null;
+
+      return (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 animate-slide-up">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Request credential</h2>
+                <p className="text-slate-600 mt-1">Ask {physicianName} for specific credentials to complete their packet.</p>
+              </div>
+              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
+                <span className="w-6 h-6 text-slate-400"><Icon name="x" /></span>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  Credential<span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Select credential type or start typing here"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    readOnly
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Icon name="chevron-down" />
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  Requesting the following credentials...
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableCredentials.map(cred => (
+                    <button
+                      key={cred}
+                      onClick={() => handleToggle(cred)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        selectedCredentials.includes(cred)
+                          ? 'bg-slate-100 text-slate-900 border-2 border-slate-300'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {cred}
+                      {selectedCredentials.includes(cred) && (
+                        <span className="ml-2 text-slate-500">Ã—</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  Requested by<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={requestDate}
+                  onChange={(e) => setRequestDate(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  Note <span className="text-slate-500">(Optional)</span>
+                </label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Hi there, could you submit the following credentials to your Evercred packet? Thanks so much!"
+                  rows={4}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
+              <button
+                onClick={onClose}
+                className="px-6 py-2.5 text-slate-700 font-medium hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={selectedCredentials.length === 0}
+                className="px-6 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send Request
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Sample document preview images
+    const documentPreviews = {
+      'medical-license-ny.pdf': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#faf5ff" width="400" height="300"/>
+          <rect fill="#7c3aed" x="20" y="20" width="360" height="50" rx="4"/>
+          <text x="200" y="50" text-anchor="middle" fill="white" font-size="12" font-weight="bold">THE STATE OF NEW YORK</text>
+          <text x="200" y="90" text-anchor="middle" fill="#1e293b" font-size="14" font-family="serif">National Board of Physicians and Surgeons</text>
+          <text x="200" y="130" text-anchor="middle" fill="#1e293b" font-size="16" font-family="serif" font-style="italic">Leah Houston, M.D.</text>
+          <text x="200" y="155" text-anchor="middle" fill="#64748b" font-size="10">is hereby granted a license to practice medicine</text>
+          <text x="200" y="175" text-anchor="middle" fill="#64748b" font-size="10">in the State of New York</text>
+          <rect fill="#f3e8ff" x="120" y="190" width="160" height="40" rx="4"/>
+          <text x="200" y="210" text-anchor="middle" fill="#6b21a8" font-size="10">License Number</text>
+          <text x="200" y="225" text-anchor="middle" fill="#1e293b" font-size="14" font-weight="bold">286543</text>
+          <text x="200" y="260" text-anchor="middle" fill="#64748b" font-size="9">Valid Through: 08-31-2026</text>
+        </svg>
+      `),
+      'medical-license-ca.pdf': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#fef3c7" width="400" height="300"/>
+          <rect fill="#b45309" x="20" y="20" width="360" height="50" rx="4"/>
+          <text x="200" y="50" text-anchor="middle" fill="white" font-size="12" font-weight="bold">STATE OF CALIFORNIA</text>
+          <text x="200" y="90" text-anchor="middle" fill="#1e293b" font-size="14" font-family="serif">Medical Board of California</text>
+          <text x="200" y="130" text-anchor="middle" fill="#1e293b" font-size="16" font-family="serif" font-style="italic">Leah Houston, M.D.</text>
+          <text x="200" y="155" text-anchor="middle" fill="#64748b" font-size="10">is hereby licensed to practice medicine</text>
+          <text x="200" y="175" text-anchor="middle" fill="#64748b" font-size="10">in the State of California</text>
+          <rect fill="#fef9c3" x="120" y="190" width="160" height="40" rx="4"/>
+          <text x="200" y="210" text-anchor="middle" fill="#92400e" font-size="10">License Number</text>
+          <text x="200" y="225" text-anchor="middle" fill="#1e293b" font-size="14" font-weight="bold">136896</text>
+          <text x="200" y="260" text-anchor="middle" fill="#64748b" font-size="9">Valid Through: 03-31-2025</text>
+        </svg>
+      `),
+      'dea-registration.pdf': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#f8fafc" width="400" height="300"/>
+          <rect fill="#0ea5e9" x="20" y="20" width="360" height="260" rx="4" opacity="0.1"/>
+          <rect fill="#0ea5e9" x="30" y="30" width="340" height="80" rx="2"/>
+          <text x="200" y="60" text-anchor="middle" fill="white" font-size="12" font-weight="bold">CONTROLLED SUBSTANCE REGISTRATION CERTIFICATE</text>
+          <text x="200" y="80" text-anchor="middle" fill="white" font-size="10">UNITED STATES DEPARTMENT OF JUSTICE</text>
+          <text x="200" y="95" text-anchor="middle" fill="white" font-size="9">DRUG ENFORCEMENT ADMINISTRATION</text>
+          <rect fill="white" x="40" y="120" width="150" height="60" rx="2"/>
+          <text x="50" y="140" fill="#334155" font-size="8">DEA REGISTRATION NUMBER</text>
+          <text x="50" y="155" fill="#0f172a" font-size="11" font-weight="bold">FH1234567</text>
+          <text x="50" y="170" fill="#334155" font-size="8">EXPIRES: 12-31-2026</text>
+          <rect fill="white" x="200" y="120" width="150" height="60" rx="2"/>
+          <text x="210" y="140" fill="#334155" font-size="8">SCHEDULES</text>
+          <text x="210" y="155" fill="#0f172a" font-size="11" font-weight="bold">2, 2N, 3, 3N, 4, 5</text>
+          <text x="210" y="170" fill="#334155" font-size="8">PRACTITIONER</text>
+          <text x="50" y="210" fill="#0f172a" font-size="10" font-weight="bold">HOUSTON, LEAH CHRISTINE MD</text>
+          <text x="50" y="225" fill="#64748b" font-size="9">123 SPRING STREET</text>
+          <text x="50" y="240" fill="#64748b" font-size="9">ANYTOWN, PA 12121</text>
+        </svg>
+      `),
+      'verification-proof.png': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#f0fdf4" width="400" height="300"/>
+          <rect fill="#16a34a" x="20" y="20" width="360" height="40" rx="4"/>
+          <text x="200" y="45" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Ã¢Å“â€œ VERIFICATION PROOF - PRIMARY SOURCE</text>
+          <rect fill="white" x="30" y="75" width="340" height="200" rx="4" stroke="#d1d5db" stroke-width="1"/>
+          <text x="50" y="100" fill="#334155" font-size="10" font-weight="bold">Portal: NY State Education Department</text>
+          <text x="50" y="120" fill="#64748b" font-size="9">License Lookup Result</text>
+          <rect fill="#f8fafc" x="40" y="135" width="320" height="120" rx="2"/>
+          <text x="55" y="155" fill="#334155" font-size="9">Name: HOUSTON, LEAH CHRISTINE</text>
+          <text x="55" y="175" fill="#334155" font-size="9">License #: 286543</text>
+          <text x="55" y="195" fill="#334155" font-size="9">Status: ACTIVE - NO RESTRICTIONS</text>
+          <text x="55" y="215" fill="#334155" font-size="9">Issued: 06/15/2012</text>
+          <text x="55" y="235" fill="#334155" font-size="9">Expires: 08/31/2026</text>
+          <text x="200" y="280" text-anchor="middle" fill="#64748b" font-size="8">Captured: Jan 14, 2026 2:48:23 PM EST</text>
+        </svg>
+      `),
+      'residency_certificate.jpg': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#fefce8" width="400" height="300"/>
+          <rect fill="#854d0e" x="20" y="20" width="360" height="260" rx="4" opacity="0.05"/>
+          <text x="200" y="50" text-anchor="middle" fill="#1e293b" font-size="16" font-family="serif" font-style="italic">Albany Medical Center</text>
+          <circle cx="200" cy="90" r="30" fill="none" stroke="#854d0e" stroke-width="1"/>
+          <text x="200" y="95" text-anchor="middle" fill="#854d0e" font-size="10">M.D.</text>
+          <text x="200" y="130" text-anchor="middle" fill="#1e293b" font-size="14" font-family="serif">Leah Houston, M.D.</text>
+          <text x="200" y="150" text-anchor="middle" fill="#64748b" font-size="10">has satisfied the requirements for completion of residency training in</text>
+          <text x="200" y="175" text-anchor="middle" fill="#1e293b" font-size="13" font-family="serif" font-style="italic">Emergency Medicine</text>
+          <text x="200" y="195" text-anchor="middle" fill="#64748b" font-size="9">Accredited by the Accreditation Council for Graduate Medical Education</text>
+          <text x="200" y="235" text-anchor="middle" fill="#1e293b" font-size="11" font-weight="bold">July 1, 2009 to June 30, 2012</text>
+        </svg>
+      `),
+      'board-certification.pdf': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#fff7ed" width="400" height="300"/>
+          <rect fill="#ea580c" x="50" y="30" width="300" height="50" rx="4"/>
+          <text x="200" y="55" text-anchor="middle" fill="white" font-size="10" font-weight="bold">AMERICAN BOARD OF EMERGENCY MEDICINE</text>
+          <text x="200" y="70" text-anchor="middle" fill="white" font-size="8">ABEM</text>
+          <text x="200" y="110" text-anchor="middle" fill="#1e293b" font-size="12" font-family="serif">This is to certify that</text>
+          <text x="200" y="140" text-anchor="middle" fill="#1e293b" font-size="16" font-family="serif" font-style="italic">Leah Christine Houston, MD</text>
+          <text x="200" y="165" text-anchor="middle" fill="#64748b" font-size="10">has fulfilled all requirements and is hereby certified as a Diplomate in</text>
+          <text x="200" y="190" text-anchor="middle" fill="#1e293b" font-size="14" font-weight="bold">Emergency Medicine</text>
+          <text x="200" y="220" text-anchor="middle" fill="#64748b" font-size="9">Certificate #53460</text>
+          <text x="200" y="250" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="bold">EXPIRED: December 21, 2023</text>
+        </svg>
+      `),
+      'leah_houston_cv.pdf': 'data:image/svg+xml,' + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+          <rect fill="#f8fafc" width="400" height="300"/>
+          <text x="200" y="40" text-anchor="middle" fill="#1e293b" font-size="18" font-weight="bold">CURRICULUM VITAE</text>
+          <text x="200" y="65" text-anchor="middle" fill="#1e293b" font-size="14">Leah Christine Houston, MD</text>
+          <line x1="60" y1="80" x2="340" y2="80" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="70" y="105" fill="#475569" font-size="10" font-weight="bold">PROFESSIONAL EXPERIENCE</text>
+          <text x="70" y="125" fill="#1e293b" font-size="9">HPEC, Inc - Founder/CEO (2019-Present)</text>
+          <text x="70" y="140" fill="#1e293b" font-size="9">St Johns Episcopal Hospital (2017-2018)</text>
+          <text x="70" y="155" fill="#1e293b" font-size="9">Southampton Hospital (2017)</text>
+          <text x="70" y="170" fill="#1e293b" font-size="9">Jackson Memorial Hospital (2012-2015)</text>
+          <text x="70" y="185" fill="#64748b" font-size="8">... and 8 more positions</text>
+          <line x1="60" y1="200" x2="340" y2="200" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="70" y="225" fill="#475569" font-size="10" font-weight="bold">EDUCATION</text>
+          <text x="70" y="245" fill="#1e293b" font-size="9">Albany Medical College, MD (2009)</text>
+          <text x="70" y="260" fill="#1e293b" font-size="9">Emergency Medicine Residency (2009-2012)</text>
+        </svg>
+      `)
+    };
+
+    // =====================================================
+    // STATUS BADGE COMPONENT (Gap 1 - Accessibility)
+    // =====================================================
+    const StatusBadge = ({ status }) => {
+      const statusConfig = {
+        VERIFIED: { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: 'check-circle', label: 'VERIFIED' },
+        UNVERIFIED: { bg: 'bg-amber-100', text: 'text-amber-700', icon: 'alert-triangle', label: 'UNVERIFIED' },
+        PROCESSING: { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'loader-2', label: 'PROCESSING', animate: true },
+        EXPIRED: { bg: 'bg-red-100', text: 'text-red-700', icon: 'x-circle', label: 'EXPIRED' },
+        FAILED: { bg: 'bg-red-100', text: 'text-red-700', icon: 'x-circle', label: 'FAILED' },
+        MANUAL: { bg: 'bg-purple-100', text: 'text-purple-700', icon: 'user-check', label: 'MANUAL' },
+        API_VERIFIED: { bg: 'bg-cyan-100', text: 'text-cyan-700', icon: 'zap', label: 'API VERIFIED' },
+        DISCIPLINARY: { bg: 'bg-orange-100', text: 'text-orange-700', icon: 'alert-octagon', label: 'DISCIPLINARY ACTION' }
+      };
+      const config = statusConfig[status] || statusConfig.UNVERIFIED;
+      return (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+          <span className={`w-3.5 h-3.5 ${config.animate ? 'animate-spin' : ''}`}><Icon name={config.icon} /></span>
+          {config.label}
+        </span>
+      );
+    };
+
+    // =====================================================
+    // REQUEST MISSING INFORMATION MODAL
+    // =====================================================
+    const RequestMissingInfoModal = ({ isOpen, onClose, physician, missingItems }) => {
+      const [selectedItems, setSelectedItems] = useState([]);
+      const [selectAll, setSelectAll] = useState(true);
+      const [priority, setPriority] = useState('');
+      const [requestedBy, setRequestedBy] = useState('');
+      const [note, setNote] = useState('');
+      
+      useEffect(() => {
+        if (isOpen) {
+          const allItems = [];
+          missingItems.forEach(category => {
+            category.items.forEach(item => {
+              allItems.push(`${category.category}-${item}`);
+            });
+          });
+          setSelectedItems(allItems);
+          setSelectAll(true);
+        }
+      }, [isOpen, missingItems]);
+      
+      if (!isOpen) return null;
+      
+      const handleSelectAll = (checked) => {
+        setSelectAll(checked);
+        if (checked) {
+          const allItems = [];
+          missingItems.forEach(category => {
+            category.items.forEach(item => {
+              allItems.push(`${category.category}-${item}`);
+            });
+          });
+          setSelectedItems(allItems);
+        } else {
+          setSelectedItems([]);
+        }
+      };
+      
+      const handleItemToggle = (categoryName, item) => {
+        const key = `${categoryName}-${item}`;
+        if (selectedItems.includes(key)) {
+          setSelectedItems(selectedItems.filter(i => i !== key));
+          setSelectAll(false);
+        } else {
+          setSelectedItems([...selectedItems, key]);
+        }
+      };
+      
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900">Request personal information</h3>
+                  <p className="text-sm text-slate-500 mt-1">Ask the practitioner for missing required information to complete their packet.</p>
+                </div>
+                <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                  <span className="w-5 h-5 text-slate-400"><Icon name="x" /></span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-slate-700">Request the following missing information:</span>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={selectAll} onChange={(e) => handleSelectAll(e.target.checked)} className="rounded border-slate-300" />
+                  <span className="text-sm text-slate-600">Select All</span>
+                </label>
+              </div>
+              
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="max-h-64 overflow-y-auto">
+                  {missingItems.map((category, catIdx) => (
+                    <div key={catIdx} className="border-b border-slate-100 last:border-b-0">
+                      <div className="px-4 py-3 bg-slate-50">
+                        <span className="text-sm font-medium text-slate-700">{category.category}</span>
+                      </div>
+                      <div className="px-4 py-2 space-y-2">
+                        {category.items.map((item, itemIdx) => (
+                          <label key={itemIdx} className="flex items-center gap-3 py-1">
+                            <input type="checkbox" checked={selectedItems.includes(`${category.category}-${item}`)} onChange={() => handleItemToggle(category.category, item)} className="rounded border-slate-300" />
+                            <span className="text-sm text-slate-700">{item}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Request Priority<span className="text-red-500">*</span></label>
+                  <select value={priority} onChange={(e) => setPriority(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select priority</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="normal">Normal</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Requested by<span className="text-red-500">*</span></label>
+                  <input type="date" value={requestedBy} onChange={(e) => setRequestedBy(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Note <span className="text-slate-400">(Optional)</span></label>
+                <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a note to the physician..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" rows={3} />
+              </div>
+              
+              <div className="flex justify-end">
+                <button onClick={onClose} disabled={selectedItems.length === 0 || !priority || !requestedBy} className={`px-6 py-2.5 rounded-lg font-medium transition-colors ${selectedItems.length === 0 || !priority || !requestedBy ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-800 text-white hover:bg-slate-900'}`}>
+                  Send Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // CREDENTIAL DETAIL MODAL (NEW - View single credential)
+    // =====================================================
+    const CredentialDetailModal = ({ credential, isOpen, onClose, onVerify, onViewProof, onDocumentClick }) => {
+      const [activeTab, setActiveTab] = useState('verification');
+      const [expandedEvents, setExpandedEvents] = useState({});
+      
+      if (!isOpen || !credential) return null;
+      
+      const toggleEvent = (idx) => {
+        setExpandedEvents(prev => ({ ...prev, [idx]: !prev[idx] }));
+      };
+      
+      const typeIcons = {
+        'Medical License': 'file-text',
+        'DEA Registration': 'pill',
+        'Board Certification': 'award',
+        'Residency': 'graduation-cap',
+        'State CDS': 'shield',
+        'Employment History': 'briefcase'
+      };
+      
+      // Get documents including verification proof if verified
+      const getDocuments = () => {
+        const docs = [...(credential.documents || [])];
+        if (credential.status === 'VERIFIED' && credential.verificationProof) {
+          docs.push(credential.verificationProof);
+        }
+        return docs;
+      };
+      
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm" onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-slate-100">
+              <div className="flex items-start justify-between">
+                <div className="flex gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                    <span className="w-7 h-7 text-indigo-600"><Icon name={typeIcons[credential.type] || 'file-text'} /></span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-semibold text-slate-900">{credential.type}</h3>
+                      <StatusBadge status={credential.status} />
+                    </div>
+                    <p className="text-slate-500">{credential.state}</p>
+                    <p className="text-sm text-slate-400 mt-1">Number: {credential.number}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {credential.status === 'VERIFIED' && (
+                    <button onClick={() => onViewProof(credential)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-700 hover:bg-indigo-100 transition-colors">
+                      <span className="w-4 h-4"><Icon name="file-check" /></span>
+                      View Proof
+                    </button>
+                  )}
+                  {credential.status === 'UNVERIFIED' && (
+                    <button onClick={() => onVerify(credential)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all">
+                      <span className="w-4 h-4"><Icon name="shield" /></span>
+                      Verify Now
+                    </button>
+                  )}
+                  <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-lg transition-colors">
+                    <span className="w-5 h-5 text-slate-400"><Icon name="x" /></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Tabs */}
+            <div className="border-b border-slate-100">
+              <div className="flex">
+                {['verification', 'activity', 'documents'].map((tab) => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === tab ? 'text-indigo-600 border-b-2 border-indigo-500 bg-indigo-50/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    {tab === 'documents' && credential.status === 'VERIFIED' && (
+                      <span className="ml-2 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">+Proof</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {activeTab === 'verification' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Name on Record</p>
+                    <p className="text-sm font-medium text-slate-900">{credential.nameOnRecord || credential.physicianName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Document Status</p>
+                    <p className="text-sm font-medium text-slate-900">{credential.documentStatus}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Expiration</p>
+                    <p className="text-sm font-medium text-slate-900">{credential.expiryDate}</p>
+                  </div>
+                  {credential.status === 'VERIFIED' && (
+                    <>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Verification Method</p>
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${credential.verificationMethod === 'Automated' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
+                          <span className="w-3 h-3"><Icon name={credential.verificationMethod === 'Automated' ? 'bot' : 'user'} /></span>
+                          {credential.verificationMethod}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Verified By</p>
+                        <p className="text-sm font-medium text-slate-900">{credential.verifiedBy}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Portal</p>
+                        <p className="text-sm font-medium text-slate-900">{credential.verificationPortal}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Task ID</p>
+                        <p className="text-sm font-mono text-slate-600">{credential.taskId}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Verification Time</p>
+                        <p className="text-sm font-medium text-slate-900">{credential.verificationTime}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {activeTab === 'activity' && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-slate-700">Activity Feed</h4>
+                    {credential.status === 'VERIFIED' && (
+                      <button onClick={() => onViewProof(credential)} className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                        <span className="w-3 h-3"><Icon name="download" /></span>
+                        Download Verification Proof
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-1 max-h-64 overflow-y-auto">
+                    {credential.activityFeed?.map((event, idx) => (
+                      <ActivityFeedItem key={idx} event={event} index={idx} isExpanded={expandedEvents[idx]} onToggle={toggleEvent} showProofLink={event.type === 'complete' && credential.status === 'VERIFIED'} onViewProof={() => onViewProof(credential)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {activeTab === 'documents' && (
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-700 mb-3">Attached Documents</h4>
+                  <div className="space-y-2">
+                    {getDocuments().map((doc, idx) => (
+                      <button key={idx} onClick={() => onDocumentClick(doc)} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left ${doc.isProof ? 'bg-emerald-50 hover:bg-emerald-100 border border-emerald-200' : 'bg-slate-50 hover:bg-slate-100'}`}>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${doc.isProof ? 'bg-emerald-100' : 'bg-white border border-slate-200'}`}>
+                          <span className={`w-5 h-5 ${doc.isProof ? 'text-emerald-600' : 'text-slate-500'}`}><Icon name={doc.isProof ? 'shield-check' : 'file-text'} /></span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-900">{doc.name}</p>
+                          <p className="text-xs text-slate-500">{doc.isProof ? 'Verification Proof' : `${doc.pages} page(s)`}</p>
+                        </div>
+                        <span className="w-4 h-4 text-slate-400"><Icon name="external-link" /></span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // EMPLOYMENT HISTORY ENTRIES (NEW - 3+ entries with gap)
+    // =====================================================
+    const EmploymentHistoryCard = ({ credential, onVerify, onViewProof, onDocumentClick }) => {
+      const [expanded, setExpanded] = useState(false);
+      
+      const employmentEntries = [
+        {
+          employer: 'HPEC, Inc.',
+          position: 'Founder & CEO',
+          location: 'Remote / Delaware',
+          startDate: 'Nov 2019',
+          endDate: 'Present',
+          status: 'VERIFIED',
+          verificationMethod: 'API',
+          verificationDetails: 'Delaware business registry confirmed. Officer: Leah Houston - CEO',
+          notes: 'Current position - startup founder in healthcare technology'
+        },
+        {
+          employer: null,
+          position: 'Career Gap',
+          location: null,
+          startDate: 'Jan 2018',
+          endDate: 'Nov 2019',
+          status: 'EXPLAINED',
+          verificationMethod: null,
+          verificationDetails: null,
+          notes: 'Gap explained: Caring for mother with cancer. Documentation provided.',
+          isGap: true
+        },
+        {
+          employer: 'St Johns Episcopal Hospital',
+          position: 'Emergency Physician',
+          location: 'Far Rockaway, NY',
+          startDate: 'May 2017',
+          endDate: 'Jan 2018',
+          status: 'VERIFIED',
+          verificationMethod: 'Phone',
+          verificationDetails: 'Spoke with Jennifer Martinez, HR Coordinator. Employment dates and position confirmed.',
+          notes: 'Rehire eligibility: Yes'
+        },
+        {
+          employer: 'Southampton Hospital',
+          position: 'Emergency Physician (Seasonal)',
+          location: 'Southampton, NY',
+          startDate: 'May 2017',
+          endDate: 'Aug 2017',
+          status: 'VERIFIED',
+          verificationMethod: 'Email',
+          verificationDetails: 'Email response received from hr@southamptonhospital.org',
+          notes: 'Seasonal position during summer months'
+        },
+        {
+          employer: 'Indian River Medical Center',
+          position: 'Emergency Medicine Physician',
+          location: 'Vero Beach, FL',
+          startDate: 'Nov 2016',
+          endDate: 'Jan 2017',
+          status: 'VERIFIED',
+          verificationMethod: 'Fax',
+          verificationDetails: 'Fax response received from Medical Staff Office',
+          notes: 'Locum tenens assignment'
+        },
+        {
+          employer: 'Jackson Memorial Hospital',
+          position: 'Emergency Medicine Physician (Maxim Physicians)',
+          location: 'Miami, FL',
+          startDate: 'Dec 2012',
+          endDate: 'Apr 2015',
+          status: 'VERIFIED',
+          verificationMethod: 'Fax',
+          verificationDetails: 'Fax received from Medical Staff Office. Dates and position verified.',
+          notes: 'First attending position post-residency'
+        }
+      ];
+      
+      const displayedEntries = expanded ? employmentEntries : employmentEntries.slice(0, 3);
+      
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="p-5 border-b border-slate-100">
+            <div className="flex items-start justify-between">
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                  <span className="w-6 h-6 text-indigo-600"><Icon name="briefcase" /></span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-semibold text-slate-900">Employment History</h3>
+                    <StatusBadge status={credential.status} />
+                  </div>
+                  <p className="text-slate-500">{employmentEntries.length} positions Ã¢â‚¬Â¢ {employmentEntries.filter(e => e.isGap).length} gap documented</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {credential.status === 'VERIFIED' && (
+                  <button onClick={() => onViewProof(credential)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-700 hover:bg-indigo-100 transition-colors">
+                    <span className="w-4 h-4"><Icon name="file-check" /></span>
+                    View Verification Proof
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-5">
+            <div className="space-y-4">
+              {displayedEntries.map((entry, idx) => (
+                <div key={idx} className={`p-4 rounded-xl border ${entry.isGap ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {entry.isGap ? (
+                          <span className="text-amber-700 font-medium flex items-center gap-1">
+                            <span className="w-4 h-4"><Icon name="clock" /></span>
+                            Career Gap
+                          </span>
+                        ) : (
+                          <span className="font-medium text-slate-900">{entry.employer}</span>
+                        )}
+                        {entry.status === 'VERIFIED' && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                            <span className="w-3 h-3"><Icon name="check-circle" /></span>
+                            Verified
+                          </span>
+                        )}
+                        {entry.status === 'EXPLAINED' && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+                            <span className="w-3 h-3"><Icon name="info" /></span>
+                            Explained
+                          </span>
+                        )}
+                      </div>
+                      {!entry.isGap && (
+                        <>
+                          <p className="text-sm text-slate-600">{entry.position}</p>
+                          <p className="text-xs text-slate-500">{entry.location}</p>
+                        </>
+                      )}
+                      <p className="text-xs text-slate-400 mt-1">{entry.startDate} - {entry.endDate}</p>
+                      {entry.notes && (
+                        <p className="text-xs text-slate-500 mt-2 italic">{entry.notes}</p>
+                      )}
+                    </div>
+                    {entry.verificationMethod && (
+                      <div className="text-right">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                          entry.verificationMethod === 'Phone' ? 'bg-blue-100 text-blue-700' :
+                          entry.verificationMethod === 'Email' ? 'bg-purple-100 text-purple-700' :
+                          entry.verificationMethod === 'Fax' ? 'bg-slate-100 text-slate-700' :
+                          'bg-cyan-100 text-cyan-700'
+                        }`}>
+                          <span className="w-3 h-3">
+                            <Icon name={entry.verificationMethod === 'Phone' ? 'phone' : entry.verificationMethod === 'Email' ? 'mail' : entry.verificationMethod === 'Fax' ? 'printer' : 'zap'} />
+                          </span>
+                          {entry.verificationMethod}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {entry.verificationDetails && (
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <p className="text-xs text-slate-500">{entry.verificationDetails}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {employmentEntries.length > 3 && (
+              <button onClick={() => setExpanded(!expanded)} className="w-full mt-4 py-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center justify-center gap-1">
+                <span className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}><Icon name="chevron-down" /></span>
+                {expanded ? 'Show Less' : `Show ${employmentEntries.length - 3} More Positions`}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // PACKET ACTIVITY FEED (NEW - Dashboard level)
+    // =====================================================
+    const PacketActivityFeed = ({ activities }) => {
+      const [expanded, setExpanded] = useState(false);
+      const displayedActivities = expanded ? activities : activities.slice(0, 5);
+      
+      const getActivityIcon = (type) => {
+        const lowerType = type?.toLowerCase() || '';
+        const iconMap = {
+          'request sent': 'send',
+          'request_sent': 'send',
+          'credentials shared': 'share-2',
+          'credentials_shared': 'share-2',
+          'additional credentials requested': 'mail-plus',
+          'credentials added': 'plus-circle',
+          'wallet opened': 'eye',
+          'wallet_opened': 'eye',
+          'link extended': 'clock',
+          'link expiring': 'alert-circle',
+          'link expired': 'alert-triangle',
+          'access revoked': 'shield-off',
+          'packet reshared': 'refresh-cw',
+          'review complete': 'clipboard-check',
+          'verification in progress': 'loader',
+          'verification_started': 'shield',
+          'verification complete': 'check-circle',
+          'verification_complete': 'check-circle',
+          'verification issues': 'alert-triangle',
+          'committee approved': 'award',
+          'committee_approved': 'award',
+          'committee denied': 'x-circle',
+          'conditional approval': 'check-square',
+          'privileging complete': 'award',
+          'notification sent': 'bell',
+          'reminder sent': 'bell-ring',
+          'response overdue': 'alert-octagon',
+          'credential_uploaded': 'upload',
+          'ocr_complete': 'scan',
+          'issue_flagged': 'alert-triangle',
+          'response_received': 'inbox'
+        };
+        const key = Object.keys(iconMap).find(k => lowerType.includes(k));
+        return iconMap[key] || 'activity';
+      };
+      
+      const getActivityColor = (color) => {
+        const colorMap = {
+          'Green': 'bg-emerald-500',
+          'Blue': 'bg-blue-500',
+          'Yellow': 'bg-amber-500',
+          'Red': 'bg-red-500'
+        };
+        return colorMap[color] || 'bg-slate-400';
+      };
+      
+      const getAttentionLevelColor = (level) => {
+        switch(level?.toLowerCase()) {
+          case 'critical': return 'bg-red-500';
+          case 'high': return 'bg-yellow-500';
+          case 'medium': return 'bg-blue-500';
+          case 'low': return 'bg-green-500';
+          default: return 'bg-slate-400';
+        }
+      };
+      
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+              <span className="w-5 h-5 text-indigo-600"><Icon name="activity" /></span>
+              Packet Activity Feed
+            </h3>
+            <span className="text-xs text-slate-500">{activities.length} events</span>
+          </div>
+          
+          <div className="p-4">
+            <div className="space-y-3">
+              {displayedActivities.map((activity, idx) => (
+                <div key={idx} className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full ${activity.attentionLevel ? getAttentionLevelColor(activity.attentionLevel) : getActivityColor(activity.color)} flex-shrink-0 mt-2`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-4 h-4 ${activity.attentionLevel ? getAttentionLevelColor(activity.attentionLevel).replace('bg-', 'text-') : getActivityColor(activity.color).replace('bg-', 'text-')}`}>
+                        <Icon name={getActivityIcon(activity.type)} />
+                      </span>
+                      <p className="text-sm text-slate-900">{activity.description}</p>
+                    </div>
+                    {activity.items && activity.items.length > 0 && (
+                      <ul className="mt-2 ml-6 space-y-1">
+                        {activity.items.slice(0, 4).map((item, i) => (
+                          <li key={i} className="text-xs text-slate-600 flex items-center gap-2">
+                            <span className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                        {activity.items.length > 4 && (
+                          <li className="text-xs text-indigo-600 font-medium">
+                            + {activity.items.length - 4} more
+                          </li>
+                        )}
+                      </ul>
+                    )}
+                    <p className="text-xs text-slate-400 mt-0.5">{activity.timestamp}</p>
+                    {activity.actor && (
+                      <p className="text-xs text-slate-500 mt-0.5">By: {activity.actor}</p>
+                    )}
+                  </div>
+                  {activity.status && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      activity.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                      activity.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                      activity.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                      activity.status === 'Flagged' ? 'bg-red-100 text-red-700' :
+                      activity.status === 'Alert' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-slate-100 text-slate-600'
+                    }`}>
+                      {activity.status}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {activities.length > 5 && (
+              <button onClick={() => setExpanded(!expanded)} className="w-full mt-4 py-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center justify-center gap-1 border-t border-slate-100 pt-3">
+                <span className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}><Icon name="chevron-down" /></span>
+                {expanded ? 'Show Less' : `View All ${activities.length} Events`}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // EFFICIENCY METRICS PANEL
+    // =====================================================
+    const EfficiencyMetricsPanel = ({ credentials }) => {
+      const verifiedCount = credentials.filter(c => c.status === 'VERIFIED').length;
+      const totalMinutesSaved = verifiedCount * 25;
+      const estimatedCostSaved = verifiedCount * 45;
+      
+      return (
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-5 h-5 text-emerald-600"><Icon name="trending-up" /></span>
+            <h3 className="font-semibold text-emerald-900">Efficiency Metrics</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-xl p-3 border border-emerald-100">
+              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Verifications</p>
+              <p className="text-xl font-bold text-emerald-700">{verifiedCount}</p>
+            </div>
+            <div className="bg-white rounded-xl p-3 border border-emerald-100">
+              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Time Saved</p>
+              <p className="text-xl font-bold text-emerald-700">{totalMinutesSaved} min</p>
+            </div>
+            <div className="bg-white rounded-xl p-3 border border-emerald-100">
+              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Cost Savings</p>
+              <p className="text-xl font-bold text-emerald-700">${estimatedCostSaved}</p>
+            </div>
+            <div className="bg-white rounded-xl p-3 border border-emerald-100">
+              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Avg. Time</p>
+              <p className="text-xl font-bold text-emerald-700">2:37</p>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // PACKET STATUS PANEL
+    // =====================================================
+    const PacketStatusPanel = ({ credentials }) => {
+      const verifiedCount = credentials.filter(c => c.status === 'VERIFIED').length;
+      const unverifiedCount = credentials.filter(c => c.status === 'UNVERIFIED').length;
+      const expiredCount = credentials.filter(c => c.daysUntilExpiry && c.daysUntilExpiry < 0).length;
+      const totalCount = credentials.length;
+      const progressPercent = totalCount > 0 ? (verifiedCount / totalCount) * 100 : 0;
+      
+      let statusLabel = 'In Progress';
+      let statusColor = 'blue';
+      if (verifiedCount === totalCount && expiredCount === 0) {
+        statusLabel = 'Complete';
+        statusColor = 'emerald';
+      } else if (expiredCount > 0) {
+        statusLabel = 'Needs Attention';
+        statusColor = 'amber';
+      }
+      
+      const colors = {
+        emerald: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', progress: 'bg-emerald-500' },
+        blue: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200', progress: 'bg-blue-500' },
+        amber: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', progress: 'bg-amber-500' }
+      }[statusColor];
+      
+      return (
+        <div className={`rounded-2xl border ${colors.border} p-5 ${colors.bg}`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center`}>
+                <span className={`w-5 h-5 ${colors.text}`}><Icon name={statusLabel === 'Complete' ? 'check-circle' : statusLabel === 'Needs Attention' ? 'alert-triangle' : 'clock'} /></span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Packet Status</h3>
+                <span className={`text-sm font-medium ${colors.text}`}>{statusLabel}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-slate-900">{verifiedCount}/{totalCount}</p>
+              <p className="text-xs text-slate-500">verified</p>
+            </div>
+          </div>
+          <div className="h-2 bg-white rounded-full overflow-hidden mb-3">
+            <div className={`h-full ${colors.progress} rounded-full transition-all duration-500`} style={{ width: `${progressPercent}%` }} />
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div className="bg-white rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-emerald-600">{verifiedCount}</p>
+              <p className="text-xs text-slate-500">Verified</p>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-amber-600">{unverifiedCount}</p>
+              <p className="text-xs text-slate-500">Pending</p>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-red-600">{expiredCount}</p>
+              <p className="text-xs text-slate-500">Expired</p>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center">
+              <p className="text-lg font-bold text-slate-600">{totalCount}</p>
+              <p className="text-xs text-slate-500">Total</p>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // ACTIVITY FEED ITEM
+    // =====================================================
+    const ActivityFeedItem = ({ event, isExpanded, onToggle, index, showProofLink, onViewProof }) => {
+      const colorMap = {
+        Green: 'bg-emerald-500',
+        Blue: 'bg-blue-500',
+        Yellow: 'bg-amber-500',
+        Red: 'bg-red-500',
+        Purple: 'bg-purple-500'
+      };
+      const iconMap = {
+        complete: 'check-circle',
+        navigation: 'mouse-pointer-click',
+        upload: 'upload',
+        share: 'share-2',
+        system: 'cpu',
+        phone: 'phone',
+        email: 'mail',
+        fax: 'printer',
+        error: 'alert-triangle',
+        manual: 'user-check',
+        api: 'zap'
+      };
+      const hasChildren = event.children && event.children.length > 0;
+      
+      return (
+        <div className="relative">
+          <div className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${hasChildren ? 'cursor-pointer hover:bg-slate-50' : ''}`} onClick={() => hasChildren && onToggle(index)}>
+            <div className={`w-2 h-2 rounded-full ${colorMap[event.color] || 'bg-slate-300'} flex-shrink-0 mt-2`} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className={`w-4 h-4 ${colorMap[event.color]?.replace('bg-', 'text-') || 'text-slate-400'}`}>
+                  <Icon name={iconMap[event.type] || 'activity'} />
+                </span>
+                <p className="text-sm text-slate-900 font-medium">{event.description}</p>
+                {hasChildren && (
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`}><Icon name="chevron-down" /></span>
+                    {isExpanded ? 'Hide' : 'Show'} {event.children.length} steps
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-1">{event.timestamp}</p>
+              {event.details && <p className="text-xs text-slate-500 mt-1 bg-white p-1.5 rounded">{event.details}</p>}
+              {showProofLink && (
+                <button onClick={(e) => { e.stopPropagation(); onViewProof(); }} className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                  <span className="w-3 h-3"><Icon name="download" /></span>
+                  Download Verification Proof
+                </button>
+              )}
+            </div>
+          </div>
+          {hasChildren && isExpanded && (
+            <div className="ml-8 pl-4 border-l-2 border-slate-200 space-y-2 py-2">
+              {event.children.map((child, childIdx) => (
+                <div key={childIdx} className="flex items-start gap-3 p-2 bg-slate-50 rounded-lg">
+                  <div className={`w-1.5 h-1.5 rounded-full ${colorMap[child.color] || 'bg-slate-300'} flex-shrink-0 mt-1.5`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-3 h-3 ${colorMap[child.color]?.replace('bg-', 'text-') || 'text-slate-400'}`}>
+                        <Icon name={iconMap[child.type] || 'activity'} />
+                      </span>
+                      <p className="text-xs text-slate-700">{child.description}</p>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">{child.timestamp}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // =====================================================
+    // MODALS
+    // =====================================================
+    const DocumentPreviewModal = ({ document, isOpen, onClose }) => {
+      if (!isOpen || !document) return null;
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
+          <div className="bg-white rounded-2xl max-w-3xl w-full mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-slate-900">{document.name}</h3>
+                <p className="text-sm text-slate-500">{document.isProof ? 'Verification Proof' : `${document.pages} page(s)`}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1.5 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+                  <span className="w-4 h-4"><Icon name="download" /></span>
+                  Download
+                </button>
+                <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                  <span className="w-5 h-5 text-slate-400"><Icon name="x" /></span>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 bg-slate-100 flex items-center justify-center min-h-[400px]">
+              <img src={documentPreviews[document.name] || documentPreviews['medical-license-ny.pdf']} alt={document.name} className="max-w-full max-h-[500px] rounded-lg shadow-lg" />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const VerificationProofModal = ({ credential, isOpen, onClose }) => {
+      if (!isOpen || !credential) return null;
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
+          <div className="bg-white rounded-2xl max-w-2xl w-full mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-500">
+              <div className="text-white">
+                <h3 className="font-semibold">Verification Proof</h3>
+                <p className="text-sm text-indigo-100">{credential.type} - {credential.state}</p>
+              </div>
+              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                <span className="w-5 h-5 text-white"><Icon name="x" /></span>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <span className="w-4 h-4 text-indigo-600"><Icon name="shield-check" /></span>
+                  Verification Summary
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><p className="text-slate-500">Task ID</p><p className="font-mono font-medium text-slate-900">{credential.taskId || 'task_ny_20260114_1448'}</p></div>
+                  <div><p className="text-slate-500">Verified By</p><p className="font-medium text-slate-900">{credential.verifiedBy || 'Evercred AI-Agent'}</p></div>
+                  <div><p className="text-slate-500">Verification Date</p><p className="font-medium text-slate-900">Jan 14, 2026, 2:48 PM EST</p></div>
+                  <div><p className="text-slate-500">Verification Method</p><p className="font-medium text-slate-900">{credential.verificationMethod || 'Automated'}</p></div>
+                  <div><p className="text-slate-500">Portal</p><p className="font-medium text-slate-900">{credential.verificationPortal || 'State Medical Board'}</p></div>
+                  <div><p className="text-slate-500">Duration</p><p className="font-medium text-slate-900">{credential.verificationTime || '2 min 37 sec'}</p></div>
+                </div>
+              </div>
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="p-3 bg-slate-100 flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-700">Portal Screenshot</span>
+                  <span className="text-xs text-slate-500">Captured: Jan 14, 2026, 2:48:23 PM</span>
+                </div>
+                <div className="p-4 bg-white flex items-center justify-center">
+                  <img src={documentPreviews['verification-proof.png']} alt="Verification proof" className="max-w-full rounded-lg shadow" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button className="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all flex items-center justify-center gap-2">
+                  <span className="w-4 h-4"><Icon name="download" /></span>
+                  Download Proof PDF
+                </button>
+                <button className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                  <span className="w-4 h-4"><Icon name="printer" /></span>
+                  Print for Audit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const CostConfirmationModal = ({ credential, onConfirm, onCancel, isOpen, currentTokens }) => {
+      if (!isOpen) return null;
+      const tokenCost = credential?.tokenCost || 1;
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                  <span className="w-6 h-6 text-emerald-400"><Icon name="shield" /></span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Confirm Verification</h3>
+                  <p className="text-slate-300 text-sm">Primary Source Verification</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                  <span className="text-sm text-slate-600">Credential Type</span>
+                  <span className="text-sm font-medium text-slate-900">{credential?.type}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <span className="text-sm text-amber-700">Verification Cost</span>
+                  <span className="text-sm font-bold text-amber-700">{tokenCost} {tokenCost === 1 ? 'token' : 'tokens'}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                  <span className="text-sm text-slate-600">Your Token Balance</span>
+                  <span className="text-sm font-medium text-slate-900">{currentTokens} tokens</span>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={onCancel} className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 transition-colors">Cancel</button>
+                <button onClick={onConfirm} className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all">Verify for {tokenCost} {tokenCost === 1 ? 'token' : 'tokens'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // SIDEBAR
+    // =====================================================
+    const Sidebar = ({ activeSection, onSectionChange, physicianName, verifiedCount, totalCount, credentials }) => {
+      const licenseCount = credentials.filter(c => c.type === 'Medical License' || c.type === 'DEA Registration').length;
+      const boardCount = credentials.filter(c => c.type === 'Board Certification').length;
+      const educationCount = credentials.filter(c => c.type === 'Residency').length;
+      const workHistoryCount = credentials.filter(c => c.type === 'Employment History').length;
+      
+      const sections = [
+        { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+        { id: 'contact', label: 'Contact & Demographics', icon: 'user' },
+        { id: 'licenses', label: 'Licenses', icon: 'file-text', count: licenseCount },
+        { id: 'boards', label: 'Board Certifications', icon: 'award', count: boardCount },
+        { id: 'education', label: 'Education', icon: 'graduation-cap', count: educationCount },
+        { id: 'certificates', label: 'Certificates', icon: 'shield' },
+        { id: 'cme', label: 'Continuing education', icon: 'book-open' },
+        { id: 'work', label: 'Work History', icon: 'briefcase', count: workHistoryCount },
+        { id: 'affiliations', label: 'Affiliations', icon: 'building-2', disabled: true },
+        { id: 'locations', label: 'Practice Locations', icon: 'map-pin', disabled: true },
+        { id: 'insurance', label: 'Insurance', icon: 'heart', disabled: true },
+        { id: 'sanctions', label: 'Sanctions & exclusions', icon: 'alert-octagon' },
+        { id: 'references', label: 'References', icon: 'users' },
+        { id: 'documents', label: 'Other documents', icon: 'file-text' }
+      ];
+      
+      const progressPercent = totalCount > 0 ? (verifiedCount / totalCount) * 100 : 0;
+      
+      return (
+        <div className="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
+          <div className="p-4 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">LH</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-slate-900 truncate">{physicianName}</p>
+                <p className="text-xs text-slate-500">Last Update: 01/14/2026</p>
+              </div>
+            </div>
+          </div>
+          
+          <nav className="flex-1 overflow-y-auto p-2">
+            {sections.map((section) => (
+              <button key={section.id} onClick={() => !section.disabled && onSectionChange(section.id)} disabled={section.disabled}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all mb-0.5 ${activeSection === section.id ? 'bg-indigo-50 text-indigo-700 font-medium' : section.disabled ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50'}`}>
+                <span className={`w-4 h-4 ${activeSection === section.id ? 'text-indigo-600' : ''}`}><Icon name={section.icon} /></span>
+                <span className="flex-1 text-sm">{section.label}</span>
+                {section.count !== undefined && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${activeSection === section.id ? 'bg-indigo-200 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>{section.count}</span>
+                )}
+              </button>
+            ))}
+          </nav>
+          
+          <div className="p-4 border-t border-slate-100">
+            <div className="mb-3">
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+              </div>
+            </div>
+            <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all shadow-lg shadow-indigo-200 mb-2">
+              <span className="w-4 h-4"><Icon name="check" /></span>
+              Approve Packet
+            </button>
+            <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+              <span className="w-4 h-4"><Icon name="x-circle" /></span>
+              Decline
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // CREDENTIAL CARD (Simplified - removed "Last Checked")
+    // =====================================================
+    const CredentialCard = ({ credential, onVerify, onViewProof, onViewCredential }) => {
+      const typeIcons = {
+        'Medical License': 'file-text',
+        'DEA Registration': 'pill',
+        'Board Certification': 'award',
+        'Residency': 'graduation-cap',
+        'Employment History': 'briefcase'
+      };
+      
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-lg transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="flex gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center flex-shrink-0">
+                <span className="w-6 h-6 text-indigo-600"><Icon name={typeIcons[credential.type] || 'file-text'} /></span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-semibold text-slate-900">{credential.type}</h3>
+                  <StatusBadge status={credential.status} />
+                </div>
+                <p className="text-slate-500">{credential.state}</p>
+                <p className="text-sm text-slate-400 mt-1">Number: {credential.number}</p>
+                {credential.activityFeed && credential.activityFeed.length > 0 && (
+                  <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                    <span className="w-3 h-3"><Icon name="activity" /></span>
+                    Recent: {credential.activityFeed[0].description}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {credential.status === 'VERIFIED' && (
+                <button onClick={() => onViewProof(credential)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-700 hover:bg-indigo-100 transition-colors">
+                  <span className="w-4 h-4"><Icon name="file-check" /></span>
+                  View Proof
+                </button>
+              )}
+              {credential.status === 'UNVERIFIED' && (
+                <button onClick={() => onVerify(credential)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all">
+                  <span className="w-4 h-4"><Icon name="shield" /></span>
+                  Verify Now
+                </button>
+              )}
+              <button onClick={() => onViewCredential(credential)} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                View Details
+                <span className="w-4 h-4"><Icon name="chevron-right" /></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // CONTACT & DEMOGRAPHICS VIEW
+    // =====================================================
+    const ContactDemographicsView = ({ physician, missingItems, onRequestInfo }) => {
+      const totalMissing = missingItems.reduce((sum, cat) => sum + cat.items.length, 0);
+      
+      return (
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Contact Information and Demographics</h2>
+          
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">{physician.name}</h3>
+                <p className="text-sm text-slate-500">{physician.specialty}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={onRequestInfo} className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  <span className="w-4 h-4"><Icon name="send" /></span>
+                  Request Missing Information
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                  <span className="w-4 h-4"><Icon name="edit" /></span>
+                  Edit Information
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 border-b border-slate-100">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-semibold text-slate-900">Provider Personal Information</h4>
+                {totalMissing > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-500">{totalMissing} items missing</span>
+                    <button onClick={onRequestInfo} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50">
+                      <span className="w-4 h-4"><Icon name="send" /></span>
+                      Request Info
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Full Legal Name</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.fullLegalName}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Specialty</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.specialty}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Gender</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.gender}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Date of Birth</span>
+                  <span className="text-sm text-slate-400 flex-1">{physician.dateOfBirth || '-'}</span>
+                  {!physician.dateOfBirth && <span className="w-5 h-5 text-slate-400"><Icon name="file-plus" /></span>}
+                </div>
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">NPI</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.npi}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center pb-3">
+                  <span className="text-sm text-slate-500 w-48">CAQH Provider ID</span>
+                  <span className="text-sm text-slate-400 flex-1">{physician.caqhId || '-'}</span>
+                  {!physician.caqhId && <span className="w-5 h-5 text-slate-400"><Icon name="file-plus" /></span>}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-semibold text-slate-900">Contact Information</h4>
+                <div className="flex items-center gap-2 text-emerald-600">
+                  <span className="w-4 h-4"><Icon name="check-circle" /></span>
+                  <span className="text-sm font-medium">Complete</span>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Home Address</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.address}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Personal Phone Number</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.phone}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-sm text-slate-500 w-48">Email Address</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.email}</span>
+                  <span className="w-5 h-5 text-slate-400"><Icon name="lock" /></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // OVERVIEW VIEW
+    // =====================================================
+    const OverviewView = ({ credentials, physician, onVerify, onViewCredential, onViewProof, packetActivities, onRequestCredentials }) => {
+      return (
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Overview</h2>
+          
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <PacketStatusPanel credentials={credentials} />
+            <EfficiencyMetricsPanel credentials={credentials} />
+          </div>
+          
+          {/* Provider Info Card with Specialty */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+            <div className="flex gap-8">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-slate-900">{physician.name}</h3>
+                <p className="text-indigo-600 font-medium mb-4">{physician.specialty}</p>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-8">
+                    <span className="text-sm text-slate-500 w-32">Phone Number</span>
+                    <span className="text-sm font-medium text-slate-900">{physician.phone}</span>
+                  </div>
+                  <div className="flex gap-8">
+                    <span className="text-sm text-slate-500 w-32">Email Address</span>
+                    <span className="text-sm font-medium text-slate-900">{physician.email}</span>
+                  </div>
+                  <div className="flex gap-8">
+                    <span className="text-sm text-slate-500 w-32">Home Address</span>
+                    <span className="text-sm font-medium text-slate-900">{physician.address}</span>
+                  </div>
+                  <div className="flex gap-8">
+                    <span className="text-sm text-slate-500 w-32">NPI</span>
+                    <span className="text-sm font-medium text-slate-900">{physician.npi}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="w-80">
+                <p className="text-sm text-slate-600 leading-relaxed">{physician.bio}</p>
+              </div>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="mt-6 pt-6 border-t border-slate-200">
+              <h4 className="text-sm font-semibold text-slate-900 mb-3">Quick Actions</h4>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={onRequestCredentials}
+                  className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <span className="w-4 h-4 text-slate-600"><Icon name="send" /></span>
+                  <span className="text-sm font-medium text-slate-700">Request missing credentials</span>
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                  <span className="w-4 h-4 text-slate-600"><Icon name="check-square" /></span>
+                  <span className="text-sm font-medium text-slate-700">Approve Packet</span>
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                  <span className="w-4 h-4 text-slate-600"><Icon name="x-circle" /></span>
+                  <span className="text-sm font-medium text-slate-700">Decline Packet</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Packet Activity Feed */}
+          <div className="mb-6">
+            <PacketActivityFeed activities={packetActivities} />
+          </div>
+          
+          {/* Credentials Table */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900">Shared Credentials ({credentials.length})</h3>
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-lg text-sm hover:bg-slate-800">
+                  <span className="w-4 h-4"><Icon name="download" /></span>
+                  Download CSV
+                </button>
+              </div>
+            </div>
+            
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="px-4 py-3 text-left"><input type="checkbox" className="rounded border-slate-300" /></th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Credential</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Expiration</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {credentials.map((cred, idx) => (
+                  <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-4"><input type="checkbox" className="rounded border-slate-300" /></td>
+                    <td className="px-4 py-4">
+                      <p className="font-medium text-slate-900">{cred.type}</p>
+                      <p className="text-sm text-slate-500">{cred.state}</p>
+                    </td>
+                    <td className="px-4 py-4"><StatusBadge status={cred.status} /></td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        {cred.daysUntilExpiry && cred.daysUntilExpiry <= 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">Expired</span>
+                        )}
+                        <span className="text-sm text-slate-700">{cred.expiryDate}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <button onClick={() => onViewCredential(cred)} className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                        View Credential
+                        <span className="w-4 h-4"><Icon name="chevron-right" /></span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // MAIN APP
+    // =====================================================
+    function App() {
+      const [activeSection, setActiveSection] = useState('dashboard');
+      const [showModal, setShowModal] = useState(false);
+      const [showCreditsPanel, setShowCreditsPanel] = useState(false);
+      const [showDocPreview, setShowDocPreview] = useState(false);
+      const [showProofModal, setShowProofModal] = useState(false);
+      const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
+      const [showCredentialDetail, setShowCredentialDetail] = useState(false);
+      const [showRequestCredentialsModal, setShowRequestCredentialsModal] = useState(false);
+      const [selectedDocument, setSelectedDocument] = useState(null);
+      const [selectedCredential, setSelectedCredential] = useState(null);
+      const [verifyingId, setVerifyingId] = useState(null);
+      const [tokens, setTokens] = useState(31);
+      
+      const physician = {
+        name: 'Leah Houston, MD',
+        fullLegalName: 'Leah Christine Houston, MD',
+        gender: 'Female',
+        dateOfBirth: null,
+        specialty: 'Emergency Medicine',
+        phone: '212-518-6685',
+        email: 'Leah@hpec.io',
+        address: '123 Spring Street, Anytown PA, 12121',
+        ssn: 'Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢-Ã¢â‚¬Â¢Ã¢â‚¬Â¢-1234',
+        npi: '1234567890',
+        caqhId: null,
+        bio: 'Board-certified emergency medicine physician with over 15 years of experience. Graduate of Albany Medical College. Founder of HPEC, Inc. Passionate about improving healthcare credentialing processes.'
+      };
+      
+      const missingItems = [
+        { category: 'Provider Personal Information', items: ['Date of birth', 'CAQH Provider ID'] }
+      ];
+      
+      // Packet-level activity feed (from PSV requirements - Activity Feed tab)
+      const packetActivities = [
+        {
+          type: 'Additional Credentials Requested',
+          description: 'Harbor UCLA Medical Center has requested 5 additional credentials',
+          timestamp: 'Today at 2:15 PM',
+          status: 'Pending',
+          attentionLevel: 'High',
+          actor: 'Maria Santos',
+          items: ['Medical Degree', 'DEA Registration', 'Fellowship Certificate', 'CME/CE Credits', 'BLS Certification']
+        },
+        {
+          type: 'Verification Complete',
+          description: 'California Medical License verified successfully',
+          timestamp: 'Today at 11:45 AM',
+          status: 'Completed',
+          attentionLevel: 'Low',
+          actor: 'Evercred AI Agent'
+        },
+        {
+          type: 'Verification In Progress',
+          description: 'Primary source verification is in progress for 2 credentials',
+          timestamp: 'Today at 9:30 AM',
+          status: 'In Progress',
+          attentionLevel: 'Low',
+          actor: 'System'
+        },
+        {
+          type: 'Wallet Opened',
+          description: 'Credential packet accessed by Maria Santos (Harbor UCLA Medical Center)',
+          timestamp: 'Jan 14, 2026 4:15 PM',
+          status: 'Completed',
+          attentionLevel: 'Low',
+          actor: 'System'
+        },
+        {
+          type: 'Credentials Shared',
+          description: 'Dr. Leah Houston has shared the following credentials with Harbor UCLA Medical Center',
+          timestamp: 'Jan 13, 2026 3:00 PM',
+          status: 'Completed',
+          attentionLevel: 'Low',
+          actor: 'Dr. Leah Houston',
+          items: ['Medical License - California', 'Medical License - New York', 'Board Certification - Emergency Medicine', 'Residency Certificate']
+        },
+        {
+          type: 'Review Complete',
+          description: 'Initial credential review completed by credentialing specialist',
+          timestamp: 'Jan 13, 2026 5:30 PM',
+          status: 'Completed',
+          attentionLevel: 'Low',
+          actor: 'Maria Santos'
+        },
+        {
+          type: 'Request Sent',
+          description: 'Harbor UCLA Medical Center has sent a request for 4 credentials. Requested by Maria Santos',
+          timestamp: 'Jan 10, 2026 10:00 AM',
+          status: 'Completed',
+          attentionLevel: 'Medium',
+          actor: 'Maria Santos',
+          items: ['Medical License - California', 'Medical License - New York', 'Board Certification', 'Residency Certificate']
+        }
+      ];
+      
+      const [credentials, setCredentials] = useState([
+        {
+          id: 1,
+          type: 'Medical License',
+          state: 'New York',
+          number: '286543',
+          status: 'VERIFIED',
+          documentStatus: 'ACTIVE',
+          verificationMethod: 'Automated',
+          verifiedBy: 'Evercred AI-Agent',
+          tokenCost: 1,
+          physicianName: 'Dr. Leah Houston',
+          expiryDate: '08-31-2026',
+          verificationPortal: 'NY State Education Department',
+          taskId: 'task_ny_20260114_1448',
+          verificationTime: '2 min 37 sec',
+          nameOnRecord: 'HOUSTON LEAH CHRISTINE',
+          verificationProof: { name: 'verification-proof.png', isProof: true },
+          activityFeed: [
+            { type: 'complete', description: 'Verification completed successfully', timestamp: 'Jan 14, 2026 2:48 PM', color: 'Green' },
+            { type: 'navigation', description: 'AI Agent: Captured verification screenshot', timestamp: 'Jan 14, 2026 2:47 PM', color: 'Blue' },
+            { type: 'upload', description: 'Medical license document uploaded', timestamp: 'Jan 10, 2026 10:15 AM', color: 'Green' },
+          ],
+          documents: [{ name: 'medical-license-ny.pdf', pages: 1 }]
+        },
+        {
+          id: 2,
+          type: 'Medical License',
+          state: 'California',
+          number: '136896',
+          status: 'VERIFIED',
+          documentStatus: 'ACTIVE',
+          verificationMethod: 'Automated',
+          verifiedBy: 'Evercred AI-Agent',
+          tokenCost: 1,
+          physicianName: 'Dr. Leah Houston',
+          expiryDate: 'Permanent',
+          verificationPortal: 'Medical Board of California',
+          taskId: 'task_ca_20260114_1430',
+          verificationTime: '1 min 52 sec',
+          nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
+          verificationProof: { name: 'verification-proof.png', isProof: true },
+          activityFeed: [
+            { type: 'complete', description: 'Verification completed successfully', timestamp: 'Jan 14, 2026 2:32 PM', color: 'Green' },
+            { type: 'upload', description: 'California medical license uploaded', timestamp: 'Jan 14, 2026 2:30 PM', color: 'Green' },
+          ],
+          documents: [{ name: 'medical-license-ca.pdf', pages: 1 }]
+        },
+        {
+          id: 3,
+          type: 'DEA Registration',
+          state: 'Federal (Practice Location: PA)',
+          number: 'FH1234567',
+          status: 'UNVERIFIED',
+          documentStatus: 'ACTIVE',
+          tokenCost: 1,
+          physicianName: 'Dr. Leah Houston',
+          nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
+          expiryDate: '12-31-2026',
+          activityFeed: [
+            { type: 'upload', description: 'DEA Registration uploaded', timestamp: 'Jan 14, 2026 10:30 AM', color: 'Green' },
+          ],
+          documents: [{ name: 'dea-registration.pdf', pages: 2 }]
+        },
+        {
+          id: 4,
+          type: 'Residency',
+          state: 'Emergency Medicine - Albany Medical Center',
+          number: 'AMC-2012-EM',
+          status: 'UNVERIFIED',
+          documentStatus: 'COMPLETED',
+          tokenCost: 2,
+          physicianName: 'Dr. Leah Houston',
+          nameOnRecord: 'HOUSTON, LEAH MD',
+          expiryDate: 'N/A',
+          activityFeed: [
+            { type: 'upload', description: 'Residency certificate uploaded', timestamp: 'Jan 14, 2026 11:00 AM', color: 'Green' },
+            { type: 'system', description: 'OCR processing complete - July 2009 to June 2012', timestamp: 'Jan 14, 2026 11:02 AM', color: 'Yellow' },
+          ],
+          documents: [{ name: 'residency_certificate.jpg', pages: 1 }]
+        },
+        {
+          id: 5,
+          type: 'Board Certification',
+          state: 'Emergency Medicine - ABEM',
+          number: '53460',
+          status: 'UNVERIFIED',
+          documentStatus: 'EXPIRED',
+          daysUntilExpiry: -388,
+          tokenCost: 1,
+          physicianName: 'Dr. Leah Houston',
+          nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
+          expiryDate: '12-21-2023',
+          activityFeed: [
+            { type: 'share', description: 'Board Certification shared', timestamp: 'Jan 10, 2026 3:00 PM', color: 'Green' },
+          ],
+          documents: [{ name: 'board-certification.pdf', pages: 1 }]
+        },
+        {
+          id: 6,
+          type: 'Employment History',
+          state: '6 positions verified Ã¢â‚¬Â¢ 1 gap documented',
+          number: 'CV-2026-LH-001',
+          status: 'VERIFIED',
+          documentStatus: 'VERIFIED',
+          tokenCost: 5,
+          physicianName: 'Dr. Leah Houston',
+          nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
+          expiryDate: 'N/A',
+          verificationMethod: 'Automated',
+          verifiedBy: 'Evercred AI-Agent + Manual Review',
+          verificationPortal: 'Multiple Sources',
+          taskId: 'task_cv_20260114_0900',
+          verificationTime: '4 hours 23 min',
+          verificationProof: { name: 'verification-proof.png', isProof: true },
+          activityFeed: [
+            { type: 'complete', description: 'Employment History Verification Complete - 6 positions verified', timestamp: 'Jan 14, 2026 1:30 PM', color: 'Green', children: [
+              { type: 'complete', description: 'Final review completed by Maria Santos', timestamp: 'Jan 14, 2026 1:30 PM', color: 'Green' },
+              { type: 'complete', description: 'Gap explanation accepted: 01/2018-11/2019', timestamp: 'Jan 14, 2026 1:25 PM', color: 'Green' }
+            ]},
+            { type: 'phone', description: 'Phone Verification: St Johns Episcopal Hospital', timestamp: 'Jan 14, 2026 12:45 PM', color: 'Green' },
+            { type: 'upload', description: 'CV Document Uploaded and Processed', timestamp: 'Jan 14, 2026 9:00 AM', color: 'Green' }
+          ],
+          documents: [{ name: 'leah_houston_cv.pdf', pages: 2 }]
+        }
+      ]);
+
+      const handleVerifyClick = (credential) => {
+        if (tokens < credential.tokenCost) return;
+        setSelectedCredential(credential);
+        setShowModal(true);
+      };
+
+      const handleConfirmVerify = () => {
+        setShowModal(false);
+        setVerifyingId(selectedCredential.id);
+        setTokens(prev => prev - (selectedCredential.tokenCost || 1));
+        
+        setCredentials(prev => prev.map(c => 
+          c.id === selectedCredential.id ? { ...c, status: 'PROCESSING' } : c
+        ));
+        
+        setTimeout(() => {
+          setCredentials(prev => prev.map(c => 
+            c.id === selectedCredential.id ? { 
+              ...c, 
+              status: 'VERIFIED',
+              verificationMethod: 'Automated',
+              verifiedBy: 'Evercred AI-Agent',
+              verificationPortal: c.type === 'Medical License' ? `${c.state} Medical Board` : 
+                                 c.type === 'DEA Registration' ? 'DEA NTIS Database' :
+                                 c.type === 'Board Certification' ? 'ABMS Certification Portal' : 'Primary Source',
+              taskId: `task_${Date.now()}`,
+              verificationTime: '2 min 37 sec',
+              verificationProof: { name: 'verification-proof.png', isProof: true },
+              activityFeed: [
+                { type: 'complete', description: 'Verification completed successfully', timestamp: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }), color: 'Green' },
+                ...(c.activityFeed || [])
+              ]
+            } : c
+          ));
+          setVerifyingId(null);
+        }, 3000);
+      };
+
+      const handleDocumentClick = (doc) => {
+        setSelectedDocument(doc);
+        setShowDocPreview(true);
+      };
+
+      const handleViewProof = (credential) => {
+        setSelectedCredential(credential);
+        setShowProofModal(true);
+      };
+      
+      const handleViewCredential = (credential) => {
+        setSelectedCredential(credential);
+        setShowCredentialDetail(true);
+      };
+      
+      const handleRequestCredentials = (request) => {
+        // Add new activity to the packet activities
+        const newActivity = {
+          type: 'Additional Credentials Requested',
+          description: `Harbor UCLA Medical Center has requested ${request.credentials.length} additional credentials`,
+          timestamp: 'Just now',
+          status: 'Pending',
+          attentionLevel: 'High',
+          actor: 'Maria Santos',
+          items: request.credentials
+        };
+        
+        // In a real app, this would update state
+        console.log('Credential request submitted:', request);
+        console.log('New activity:', newActivity);
+      };
+      
+      const verifiedCount = credentials.filter(c => c.status === 'VERIFIED').length;
+      const totalCount = credentials.length;
+      
+      return (
+        <div className="min-h-screen bg-slate-50">
+          {/* Header */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+            <div className="flex items-center justify-between px-6 py-3">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span className="w-5 h-5 text-white"><Icon name="shield" /></span>
+                  </div>
+                  <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Evercred</span>
+                </div>
+                <nav className="flex items-center gap-1 text-sm text-slate-500">
+                  <span>Enterprise Dashboard</span>
+                  <span className="w-4 h-4"><Icon name="chevron-right" /></span>
+                  <span className="text-slate-900 font-medium">Dr. Leah Houston</span>
+                </nav>
+              </div>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setShowCreditsPanel(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl border border-amber-200">
+                  <span className="w-4 h-4 text-amber-600"><Icon name="coins" /></span>
+                  <span className="font-semibold text-amber-700">{tokens} tokens</span>
+                </button>
+                <button className="p-2 hover:bg-slate-100 rounded-lg relative">
+                  <span className="w-5 h-5 text-slate-500"><Icon name="bell" /></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                </button>
+                <button className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">SC</button>
+              </div>
+            </div>
+          </header>
+          
+          <div className="bg-white border-b border-slate-200 px-6 py-4">
+            <h1 className="text-xl font-semibold text-slate-900">Credential Packet: <span className="font-bold">Dr. Leah Houston</span></h1>
+          </div>
+          
+          <div className="flex h-[calc(100vh-121px)]">
+            <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} physicianName="Leah Houston, MD" verifiedCount={verifiedCount} totalCount={totalCount} credentials={credentials} />
+            
+            <main className="flex-1 overflow-y-auto p-6">
+              {activeSection === 'dashboard' && (
+                <OverviewView credentials={credentials} physician={physician} onVerify={handleVerifyClick} onViewCredential={handleViewCredential} onViewProof={handleViewProof} packetActivities={packetActivities} onRequestCredentials={() => setShowRequestCredentialsModal(true)} />
+              )}
+              
+              {activeSection === 'contact' && (
+                <ContactDemographicsView physician={physician} missingItems={missingItems} onRequestInfo={() => setShowRequestInfoModal(true)} />
+              )}
+              
+              {activeSection === 'licenses' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Licenses ({credentials.filter(c => c.type === 'Medical License' || c.type === 'DEA Registration').length})</h2>
+                  <div className="space-y-4">
+                    {credentials.filter(c => c.type === 'Medical License' || c.type === 'DEA Registration').map(cred => (
+                      <CredentialCard key={cred.id} credential={cred} onVerify={handleVerifyClick} onViewProof={handleViewProof} onViewCredential={handleViewCredential} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {activeSection === 'boards' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Board Certifications ({credentials.filter(c => c.type === 'Board Certification').length})</h2>
+                  <div className="space-y-4">
+                    {credentials.filter(c => c.type === 'Board Certification').map(cred => (
+                      <CredentialCard key={cred.id} credential={cred} onVerify={handleVerifyClick} onViewProof={handleViewProof} onViewCredential={handleViewCredential} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {activeSection === 'education' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Education & Training ({credentials.filter(c => c.type === 'Residency').length})</h2>
+                  <div className="space-y-4">
+                    {credentials.filter(c => c.type === 'Residency').map(cred => (
+                      <CredentialCard key={cred.id} credential={cred} onVerify={handleVerifyClick} onViewProof={handleViewProof} onViewCredential={handleViewCredential} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {activeSection === 'work' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Work History</h2>
+                  {credentials.filter(c => c.type === 'Employment History').map(cred => (
+                    <EmploymentHistoryCard key={cred.id} credential={cred} onVerify={handleVerifyClick} onViewProof={handleViewProof} onDocumentClick={handleDocumentClick} />
+                  ))}
+                </div>
+              )}
+              
+              {!['dashboard', 'contact', 'licenses', 'boards', 'education', 'work'].includes(activeSection) && (
+                <div className="flex items-center justify-center h-96">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <span className="w-8 h-8 text-slate-400"><Icon name="file-text" /></span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2 capitalize">{activeSection}</h3>
+                    <p className="text-slate-500">This section is under development</p>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+          
+          {/* Toast */}
+          {verifyingId && (
+            <div className="fixed bottom-6 right-6 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 max-w-sm animate-slide-up">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                  <span className="w-5 h-5 text-indigo-600 animate-spin"><Icon name="loader-2" /></span>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">Verification in Progress</p>
+                  <p className="text-sm text-slate-500 mt-1">AI Agent navigating to verification portal...</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <CostConfirmationModal credential={selectedCredential} onConfirm={handleConfirmVerify} onCancel={() => setShowModal(false)} isOpen={showModal} currentTokens={tokens} />
+          <DocumentPreviewModal document={selectedDocument} isOpen={showDocPreview} onClose={() => setShowDocPreview(false)} />
+          <VerificationProofModal credential={selectedCredential} isOpen={showProofModal} onClose={() => setShowProofModal(false)} />
+          <RequestMissingInfoModal isOpen={showRequestInfoModal} onClose={() => setShowRequestInfoModal(false)} physician={physician} missingItems={missingItems} />
+          <RequestCredentialsModal isOpen={showRequestCredentialsModal} onClose={() => setShowRequestCredentialsModal(false)} onSubmit={handleRequestCredentials} physicianName={physician.name} />
+          <CredentialDetailModal credential={selectedCredential} isOpen={showCredentialDetail} onClose={() => setShowCredentialDetail(false)} onVerify={handleVerifyClick} onViewProof={handleViewProof} onDocumentClick={handleDocumentClick} />
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
