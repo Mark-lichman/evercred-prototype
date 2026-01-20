@@ -1,432 +1,451 @@
-# 🎉 Prototype v6.2 - Major UX Update
+# 🎉 v6.3 - Version History & Documentation Access
 
 ## What's New
 
-**Two game-changing UX improvements for user research:**
-
-1. **✨ Tour Side Panel** (instead of blocking modal)
-2. **⚠️ "Needs Your Attention" Section** (prominent orange-bordered alert panel)
+**Built-in version information and release notes accessible directly from the prototype!**
 
 ---
 
-## 🆕 Feature #1: Tour Side Panel
+## ✨ New Feature: Version Information System
 
-### **Before (v6.1):**
-- Center modal that blocks the prototype
-- User must close to interact
-- Can't reference instructions while testing
+### **1. Version Badge in Header**
 
-### **After (v6.2):**
-- **Left-side panel** that stays open
-- User can interact with prototype **while reading**
-- Minimize button collapses to small tab
-- Progress dots show tour position
-- Much better for user research!
+**Location:** Header, between token balance and notifications
 
-### **Tour Panel Features:**
+**Appearance:**
 ```
-┌────────────────────────────────┐
-│ Step 3 of 8          [–] [×]  │
-│                                │
-│ Token-Based Verification       │
-│                                │
-│ Description text here...       │
-│                                │
-│ ✓ Try this:                    │
-│ • Click Verify Now             │
-│ • Review cost modal            │
-│ • Notice token deduction       │
-│                                │
-│ 💡 Tip: You can interact with  │
-│ the prototype while this panel │
-│ is open. Try clicking →        │
-│                                │
-│ [← Previous]     [Next →]      │
-│                                │
-│ ● ● ● ○ ○ ○ ○ ○  (progress)   │
-└────────────────────────────────┘
+[💰 572 tokens]  [ℹ️ v6.3]  [🔔]
 ```
 
-**Panel Controls:**
-- **Minimize (–)**: Collapses to small left-edge tab
-- **Close (×)**: Ends tour completely
-- **Previous/Next**: Navigate tour steps
-- **Progress Dots**: Visual tour position
+**Design:**
+- Light gray background (`bg-slate-100`)
+- Info icon + version number
+- Hover effect (darkens)
+- Tooltip: "View version information and release notes"
 
-**Key Benefits:**
-- ✅ Users can read AND interact simultaneously
-- ✅ No need to memorize instructions
-- ✅ Natural workflow testing
-- ✅ Less facilitator intervention needed
+### **2. Version Information Modal**
 
----
-
-## 🆕 Feature #2: "Needs Your Attention" Section
-
-### **Prominent Orange Alert Panel:**
-
-Shows critical items requiring action at the top of Overview dashboard.
-
-```
-┌──────────────────────────────────────────────────┐
-│ ⚠️ NEEDS YOUR ATTENTION                          │
-├──────────────────────────────────────────────────┤
-│ 🔴 Board Certification expired - Renewal required│
-│    Emergency Medicine certification (ABEM #53460)│
-│    Expired Dec 21, 2023                          │
-│                            [Upload Renewal →]    │
-├──────────────────────────────────────────────────┤
-│ 🟠 DEA Registration verification pending         │
-│    Primary source verification needed (3 tokens) │
-│    Required for privileging                      │
-│                            [Verify Now →]        │
-├──────────────────────────────────────────────────┤
-│ 🟠 Missing CAQH Provider ID                      │
-│    Required for NCQA compliance                  │
-│    Needed for packet completion                  │
-│                            [Request Info →]      │
-└──────────────────────────────────────────────────┘
-```
-
-**Attention Levels:**
-- 🔴 **Critical** (Red icon): Overdue items, expired credentials
-- 🟠 **High** (Amber icon): Urgent but not overdue
-- 🔵 **Info** (Blue icon): General notices
+**Triggered by:** Clicking the version badge
 
 **Features:**
-- Orange border makes it impossible to miss
-- Shows up to 5 items (with "View All" if more)
-- Action buttons for each item
-- Urgency-based icons and colors
-- Displays due dates/deadlines
+- Two-tab interface
+- Complete changelog
+- Release highlights
+- Version history
 
-**Empty State:**
-When nothing needs attention:
+---
+
+## 📋 Modal Layout
+
+### **Tab 1: Current Version**
+
 ```
-┌──────────────────────────────────────────────────┐
-│ ✓ All caught up!                                 │
-│   No items need your attention right now.        │
-└──────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│ Version Information              [×]        │
+│ Evercred Prototype v6.3                     │
+├─────────────────────────────────────────────┤
+│ [Current Version] [Version History]         │
+├─────────────────────────────────────────────┤
+│                                             │
+│ ┌─────────────────────────────────────┐   │
+│ │ v6.3    January 20, 2026            │   │
+│ │ Version History & Documentation     │   │
+│ │ Latest research prototype with      │   │
+│ │ enhanced UX features                │   │
+│ └─────────────────────────────────────┘   │
+│                                             │
+│ ⭐ Key Highlights                          │
+│ ✓ Clickable version badge in header        │
+│ ✓ Version information modal                 │
+│ ✓ Complete changelog for all versions      │
+│ ✓ Tabbed interface                         │
+│                                             │
+│ 📋 Changelog                               │
+│ ➕ Version badge in header (clickable)     │
+│ ➕ Version information modal                │
+│ ➕ Built-in changelog viewer                │
+│ ➕ Version history tab                      │
+│                                             │
+├─────────────────────────────────────────────┤
+│ Prototype Mode: Research & User Testing    │
+│ Built for Evercred                 [Close] │
+└─────────────────────────────────────────────┘
 ```
-(Green border, positive messaging)
 
-**Current Urgent Items:**
-1. **Board Certification expired** (Critical)
-   - ABEM certification needs renewal
-   - Expired Dec 21, 2023
-   - Action: Upload Renewal
+### **Tab 2: Version History**
 
-2. **DEA Registration pending** (High)
-   - Needs verification (3 tokens)
-   - Required for privileging
-   - Action: Verify Now
-
-3. **Missing CAQH Provider ID** (High)
-   - NCQA compliance requirement
-   - Needed for completion
-   - Action: Request Info
-
----
-
-## 📋 Complete v6.2 Feature List
-
-**All features from v6.1, PLUS:**
-- ✅ Tour side panel (not blocking modal)
-- ✅ "Needs Your Attention" section
-- ✅ Minimize tour option
-- ✅ Tour progress dots
-- ✅ Urgency-based alert styling
-
-**Carried over from v6.1:**
-- ✅ 572 tokens
-- ✅ Clickable credits modal
-- ✅ Date of birth displayed
-- ✅ HashiCorp Vault protection
-- ✅ Realistic token costs (3-80)
-- ✅ 8-stop tour
-- ✅ Easy-to-edit tour config
-
----
-
-## 🎯 User Research Benefits
-
-### **Tour Side Panel:**
-**Problem Solved:** Users couldn't reference instructions while testing
-
-**Now:**
-- Read task → Do task → Check result
-- No modal juggling
-- Natural exploration flow
-- Less "what was I supposed to do?" moments
-
-### **Needs Attention Section:**
-**Problem Solved:** Important issues buried in activity feed
-
-**Now:**
-- Critical items immediately visible
-- Clear prioritization (critical vs. high)
-- One-click actions
-- Matches real credentialing workflows
+```
+┌─────────────────────────────────────────────┐
+│ Version Information              [×]        │
+│ Evercred Prototype v6.3                     │
+├─────────────────────────────────────────────┤
+│ [Current Version] [Version History]         │
+├─────────────────────────────────────────────┤
+│                                             │
+│ v6.3  January 20, 2026         [Current]   │
+│ Version History & Documentation             │
+│ • Clickable version badge in header         │
+│ • Version information modal                 │
+│ • Complete changelog for all versions       │
+│ • Tabbed interface                          │
+│ ─────────────────────────────────────────  │
+│                                             │
+│ v6.2  January 20, 2026                     │
+│ Major UX Improvements                       │
+│ • Tour side panel (non-blocking)            │
+│ • "Needs Your Attention" section            │
+│ • Minimizable tour with progress            │
+│ • Urgency-based alert styling               │
+│                                             │
+│ v6.1  January 19, 2026                     │
+│ Token System & Security Updates             │
+│ • Token count updated to 572                │
+│ • Clickable credits modal                   │
+│ • HashiCorp Vault protection                │
+│ • Realistic token costs (3-80)              │
+│                                             │
+│ v6.0  January 18, 2026                     │
+│ Research Features & Tour System             │
+│ • Interactive guided tour system            │
+│ • Researcher notes panel                    │
+│ • Welcome modal for orientation             │
+│ • Easy-to-edit tour configuration           │
+│                                             │
+├─────────────────────────────────────────────┤
+│ Prototype Mode: Research & User Testing    │
+│ Built for Evercred                 [Close] │
+└─────────────────────────────────────────────┘
+```
 
 ---
 
-## 🎨 Visual Design
+## 🎨 Design Details
 
-### **Tour Panel:**
-- Left side (doesn't conflict with researcher notes on right)
-- 384px wide (w-96)
-- Indigo/purple branding
-- White background
-- Minimizable to save space
+### **Version Badge:**
+- **Size:** Compact (px-3 py-1.5)
+- **Icon:** Info circle (4x4)
+- **Text:** "v6.3" (extra small, semibold)
+- **States:**
+  - Default: Gray (`slate-100` bg, `slate-600` text)
+  - Hover: Darker (`slate-200` bg, `slate-900` text)
+- **Cursor:** Pointer
+- **Tooltip:** Informative
 
-### **Attention Section:**
-- Orange color scheme (alerts but not alarming)
-- Appears between Provider Info and Activity Feed
-- Full width for visibility
-- Action buttons aligned right
-- Subtle hover effects
+### **Modal:**
+- **Width:** Max 3xl (48rem / 768px)
+- **Height:** Max 85vh (scrollable)
+- **Z-index:** 2001 (above everything)
+- **Animation:** Slide up
+- **Backdrop:** Blurred dark overlay
 
----
-
-## 🚀 Deploy v6.2
-
-### **Quick Update (2 minutes):**
-
-1. Go to GitHub repo
-2. Delete old `index.html`
-3. Upload NEW `index.html` (v6.2)
-4. Wait 30-60 seconds
-5. Refresh Railway URL
-
-**Your URL stays the same!**
+### **Change Type Icons:**
+- 🆕 **New** (Green): `plus-circle`
+- ⬆️ **Improved** (Blue): `arrow-up-circle`
+- ✅ **Fixed** (Purple): `check-circle`
 
 ---
 
-## ✅ Verification Checklist
+## 🎯 User Flow
 
-After deploying, verify these NEW features:
+### **Accessing Version Info:**
 
-### **Tour Panel:**
-- [ ] Start guided tour
-- [ ] Panel appears on LEFT side
-- [ ] Can click prototype while panel open
-- [ ] Click minimize (–) button
-- [ ] Panel collapses to left edge
-- [ ] Click tab to expand again
-- [ ] Progress dots show step 1/8
-- [ ] Navigate with Previous/Next
+1. User sees "v6.3" badge in header
+2. User hovers → Badge darkens
+3. User clicks → Modal opens
+4. User sees current version tab
+5. User reads highlights and changelog
+6. User clicks "Version History" tab
+7. User sees all previous versions
+8. User clicks "Close" or clicks outside
 
-### **Attention Section:**
-- [ ] Go to Overview (Dashboard)
-- [ ] See orange "NEEDS YOUR ATTENTION" section
-- [ ] 3 items displayed
-- [ ] Each has icon, title, subtitle, due info
-- [ ] Action buttons appear on right
-- [ ] Orange border clearly visible
+---
 
-### **All v6.1 Features Still Work:**
-- [ ] Token count shows 572
-- [ ] Credits modal opens
-- [ ] DOB displayed
-- [ ] Vault badge on SSN
-- [ ] Token costs 3-80
+## 💡 Use Cases
+
+### **For Researchers:**
+```
+"What version are my participants using?"
+→ Check header badge
+→ v6.3 clearly displayed
+```
+
+### **For Stakeholders:**
+```
+"What's new in this prototype?"
+→ Click version badge
+→ Read highlights and changelog
+```
+
+### **For Participants:**
+```
+"I want to see what changed"
+→ Click v6.3 badge
+→ Browse version history
+```
+
+### **For Documentation:**
+```
+"I need to reference what features exist"
+→ Open version info modal
+→ See complete feature list
+```
+
+---
+
+## 🚀 Benefits
+
+### **Transparency:**
+- Always visible version number
+- Clear release information
+- Complete changelog
+
+### **Accessibility:**
+- One click to access
+- No need for external docs
+- Built-in documentation
+
+### **Professionalism:**
+- Industry-standard pattern
+- Clean, polished interface
+- Comprehensive information
+
+### **Research Value:**
+- Easy version tracking
+- Clear feature timeline
+- Participant awareness
+
+---
+
+## 📊 Version History Data
+
+The system tracks these fields for each version:
+
+```javascript
+{
+  version: '6.3',
+  date: 'January 20, 2026',
+  title: 'Version History & Documentation',
+  highlights: [
+    'Key feature 1',
+    'Key feature 2',
+    'Key feature 3'
+  ],
+  changes: [
+    { type: 'new', text: 'New feature description' },
+    { type: 'improved', text: 'Improvement description' },
+    { type: 'fixed', text: 'Bug fix description' }
+  ]
+}
+```
+
+### **Current Versions in History:**
+- ✅ v6.3 - Version History & Documentation
+- ✅ v6.2 - Major UX Improvements
+- ✅ v6.1 - Token System & Security Updates
+- ✅ v6.0 - Research Features & Tour System
+
+---
+
+## 🔧 Updating Version History
+
+To add a new version, edit the `VERSION_HISTORY` array in `index.html`:
+
+### **Location:** Line ~1009 (after NeedsYourAttention component)
+
+### **Steps:**
+1. Find `const VERSION_HISTORY = [`
+2. Add new version object at the top (array position 0)
+3. Update version badge text in header
+4. Update page title
+
+### **Template:**
+```javascript
+{
+  version: '6.4',  // New version number
+  date: 'January 21, 2026',  // Release date
+  title: 'Your Feature Title',  // Short title
+  highlights: [  // 3-4 key features
+    'Feature 1',
+    'Feature 2',
+    'Feature 3'
+  ],
+  changes: [  // Detailed changelog
+    { type: 'new', text: 'New feature' },
+    { type: 'improved', text: 'Enhancement' },
+    { type: 'fixed', text: 'Bug fix' }
+  ]
+}
+```
+
+---
+
+## 🎨 Customization Options
+
+### **Badge Style:**
+You can change the badge appearance:
+- Color scheme (default: slate gray)
+- Size (default: compact)
+- Position (default: between tokens and bell)
+- Icon (default: info circle)
+
+### **Modal Content:**
+You can customize:
+- Number of highlights shown
+- Changelog format
+- Tab names
+- Footer text
+
+### **Version Format:**
+Current: `v6.3`
+Alternatives: `Version 6.3`, `6.3.0`, `v6.3-beta`
 
 ---
 
 ## 📱 Responsive Behavior
 
-**Tour Panel:**
-- Desktop: 384px wide, comfortable reading
-- Small screens: Adapts width, maintains functionality
-- Mobile: May need horizontal scroll (acceptable for prototype)
+### **Desktop:**
+- Badge fully visible
+- Modal: 768px wide
+- Two-column layout possible
 
-**Attention Section:**
-- Desktop: Full width, multi-column layout
-- Tablet: Stacks vertically
-- Mobile: Single column, buttons below text
+### **Tablet:**
+- Badge slightly smaller
+- Modal: Full width with margins
+- Single column layout
 
----
-
-## 💡 Usage Tips
-
-### **For Semi-Moderated Sessions:**
-
-**With Tour Panel:**
-```
-1. User starts tour
-2. Panel shows on left
-3. User reads task
-4. User tries task (panel stays open)
-5. User clicks Next when ready
-6. Repeat for 8 steps
-```
-
-**Researcher notes while tour runs:**
-- User confusion: "Hesitated at step 4"
-- Success moments: "Immediately found credits modal"
-- Questions: "Asked about token costs"
-
-### **For Fully Moderated Sessions:**
-
-You can use "Needs Attention" section as discussion starter:
-- "What items catch your eye first?"
-- "How would you prioritize these?"
-- "What actions would you take?"
+### **Mobile:**
+- Badge remains visible
+- Modal: Full screen
+- Scrollable content
 
 ---
 
-## 🎓 Tour Updates for v6.2
+## 🎓 Examples in the Wild
 
-The tour content explains the new features:
+This pattern is used by:
+- **GitHub:** Version badge in footer
+- **Slack:** About Slack → Version info
+- **Figma:** Help menu → Version number
+- **VS Code:** About → Version details
+- **Discord:** Settings → App version
 
-**Updated Stop 4:** Mentions token panel can be clicked
-**Updated Stop 7:** Explains Vault protection
-**All 8 stops:** Work with side panel format
-
-**To Edit Tour:**
-1. Open `index.html`
-2. Find line ~76: `// TOUR CONFIGURATION`
-3. Edit text in quotes
-4. Save and redeploy
+**Industry standard for showing version information!**
 
 ---
 
-## 📊 Comparison
+## ✅ Testing Checklist
 
-| Feature | v6.0 | v6.1 | v6.2 |
-|---------|------|------|------|
-| Tokens | 31 | 572 | 572 |
-| Tour format | Center modal | Center modal | **Side panel** ✨ |
-| Attention section | ❌ | ❌ | **✅** ✨ |
-| Tour minimize | ❌ | ❌ | **✅** ✨ |
-| Credits modal | ❌ | ✅ | ✅ |
-| Vault protection | ❌ | ✅ | ✅ |
-| Token costs | 1-5 | 3-80 | 3-80 |
-| Tour stops | 6 | 8 | 8 |
-| File size | 125KB | 130KB | ~135KB |
+After deployment:
+
+**Version Badge:**
+- [ ] Visible in header
+- [ ] Shows "v6.3"
+- [ ] Has info icon
+- [ ] Hover effect works
+- [ ] Tooltip appears
+- [ ] Clickable
+
+**Version Modal:**
+- [ ] Opens on badge click
+- [ ] Shows current version (6.3)
+- [ ] Highlights are correct
+- [ ] Changelog is accurate
+- [ ] Tabs work (Current / History)
+- [ ] History shows all 4 versions
+- [ ] Close button works
+- [ ] Click outside closes modal
+
+**Content Accuracy:**
+- [ ] Version number matches everywhere
+- [ ] Dates are correct
+- [ ] Features listed are accurate
+- [ ] No typos in text
 
 ---
 
-## 🐛 Known Behaviors
+## 🐛 Troubleshooting
 
-**Tour Panel:**
-- Overlays credentials on left side (acceptable)
-- User can interact with prototype behind panel
-- Minimize creates small tab on left edge
-
-**Attention Section:**
-- Shows static list (not dynamic filtering)
-- Action buttons are UI-ready (not functional)
-- Always shows 3 items in prototype
-
----
-
-## 🆘 Troubleshooting
-
-**Issue: Tour panel doesn't appear on left**
+**Badge not visible:**
+- Check header rendering
+- Verify state is initialized
 - Clear browser cache
-- Hard refresh (Ctrl+Shift+R)
-- Check browser console for errors
 
-**Issue: Can't interact with prototype**
-- Tour panel should NOT block clicks
-- Try clicking further right on screen
-- Minimize tour panel if needed
+**Modal won't open:**
+- Check onClick handler
+- Verify showVersionInfo state
+- Check console for errors
 
-**Issue: Attention section not visible**
-- Go to Dashboard (Overview)
-- Scroll to top
-- Should appear after Provider Info card
+**Wrong version shown:**
+- Update VERSION_HISTORY array
+- Update badge text in header
+- Update page title
 
-**Issue: Orange section is green instead**
-- This means no urgent items (all caught up)
-- Expected if urgentItems array is empty
-
----
-
-## 📁 Files Package
-
-1. **index.html** (v6.2) ← Deploy this
-   - Tour side panel integrated
-   - Needs Attention section added
-   - All v6.1 features preserved
-
-2. **RELEASE_NOTES_v6.2.md** (this file)
-   - Complete feature documentation
-   - Usage guidelines
-   - Troubleshooting
-
-3. **Previous versions preserved:**
-   - v6.1 available if needed to rollback
-   - v6.0 archived
+**History not displaying:**
+- Check VERSION_HISTORY structure
+- Verify map() function
+- Check for JavaScript errors
 
 ---
 
-## 🎯 Research Session Example
+## 📊 Complete Feature List (v6.3)
 
-**Participant arrives:**
-1. Sees welcome modal
-2. Clicks "Start Guided Tour"
-3. Tour panel opens on LEFT
-4. Step 1: Overview Dashboard
-   - Reads instructions in panel
-   - Scans credentials on right
-   - Sees orange "Needs Attention" section
-   - Clicks Next
+**All features from previous versions, PLUS:**
+- ✅ Clickable version badge in header
+- ✅ Version information modal
+- ✅ Two-tab interface
+- ✅ Complete changelog
+- ✅ Version history viewer
+- ✅ Change type icons (new/improved/fixed)
+- ✅ Current version indicator
+- ✅ Professional documentation
 
-5. Step 2: Credential Cards
-   - Panel stays open
-   - Clicks "View Proof" on right
-   - Reviews modal
-   - Returns to tour panel, clicks Next
+**Carried from v6.2:**
+- ✅ Tour side panel
+- ✅ "Needs Your Attention" section
+- ✅ Minimizable tour
+- ✅ Progress dots
 
-**You observe:**
-- Tour panel doesn't interrupt flow
-- Attention section draws eye immediately
-- Natural interaction rhythm
+**Carried from v6.1:**
+- ✅ 572 tokens
+- ✅ Credits modal
+- ✅ Vault protection
+- ✅ Realistic token costs
 
----
-
-## ⏱️ Timeline
-
-**Deploy:** 2 minutes
-**Test yourself:** 10 minutes (important!)
-**First session:** 15 minutes
-**Multiple sessions:** Ready now
+**Carried from v6.0:**
+- ✅ Guided tour system
+- ✅ Researcher notes
+- ✅ Welcome modal
 
 ---
 
-## 💪 Why These Changes Matter
+## 🎉 Summary
 
-### **Tour Side Panel:**
-**Before:** "Wait, what was I supposed to do again?"
-**After:** Instructions always visible → smoother testing
+**v6.3 adds professional version tracking:**
 
-### **Needs Attention Section:**
-**Before:** Important issues hidden in feed
-**After:** Critical items front and center → matches real workflow
+✅ **Visible** - Badge always in header
+✅ **Accessible** - One click to open
+✅ **Comprehensive** - Full history and changelog
+✅ **Professional** - Industry-standard pattern
+✅ **Useful** - For research, stakeholders, and participants
 
-**Combined Effect:**
-- More natural testing flow
-- Less facilitator intervention
-- Better quality feedback
-- Participants feel more confident
+**File:** `index.html` (v6.3) - ~140KB
 
 ---
 
-## 🎉 Ready to Deploy!
+## 📁 What to Deploy
 
-This version represents a **significant UX improvement** for user research:
+1. **index.html** (v6.3) ← Deploy this!
+   - Version badge in header
+   - Version info modal
+   - All v6.2 features
 
-✅ Non-blocking tour panel
-✅ Prominent attention alerts  
-✅ All previous enhancements
-✅ Research-optimized design
-
-**File:** `index.html` (v6.2)
+2. **This documentation**
+   - Feature explanation
+   - Usage guide
+   - Customization options
 
 ---
 
-*Prototype v6.2 - Research Edition*
-*Major UX improvements for user testing!*
-*Deploy with confidence!*
+*v6.3 Release Notes*
+*Version History & Documentation Access*
+*Professional prototype with built-in changelog!*
