@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evercred Credential Verification - Research Prototype v6.0</title>
+  <title>Evercred Credential Verification - Research Prototype v6.2</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -223,55 +223,116 @@
       );
     }
 
-    // Tour Tooltip Component
+    // Tour Tooltip Component (Side Panel)
     function TourTooltip({ step, totalSteps, title, description, tasks, onNext, onPrev, onSkip }) {
+      const [minimized, setMinimized] = useState(false);
+      
+      if (minimized) {
+        return (
+          <button
+            onClick={() => setMinimized(false)}
+            className="fixed left-6 top-1/2 -translate-y-1/2 bg-indigo-600 text-white p-4 rounded-r-xl shadow-lg hover:bg-indigo-700 transition-all z-[1002] flex flex-col items-center gap-2"
+          >
+            <span className="w-5 h-5"><Icon name="chevrons-right" /></span>
+            <span className="text-xs font-semibold writing-mode-vertical transform rotate-180">Tour</span>
+          </button>
+        );
+      }
+      
       return (
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 bg-white rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[1002] animate-slide-up">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-indigo-600">
-              Step {step + 1} of {totalSteps}
-            </span>
-            <button onClick={onSkip} className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
-              Skip tour
-            </button>
+        <div className="fixed left-0 top-0 h-full w-96 bg-white border-r-2 border-indigo-500 shadow-2xl z-[1002] flex flex-col animate-slide-in-right" style={{ animationDirection: 'reverse' }}>
+          {/* Header */}
+          <div className="p-6 border-b-2 border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-indigo-600">
+                Step {step + 1} of {totalSteps}
+              </span>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setMinimized(true)}
+                  className="p-1 hover:bg-indigo-100 rounded transition-colors"
+                  title="Minimize tour panel"
+                >
+                  <span className="w-4 h-4 text-slate-500"><Icon name="chevrons-left" /></span>
+                </button>
+                <button 
+                  onClick={onSkip} 
+                  className="p-1 hover:bg-indigo-100 rounded transition-colors"
+                  title="Skip tour"
+                >
+                  <span className="w-4 h-4 text-slate-500"><Icon name="x" /></span>
+                </button>
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-slate-900">{title}</h3>
           </div>
           
-          <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
-          <p className="text-slate-600 mb-4">{description}</p>
-          
-          {tasks && tasks.length > 0 && (
-            <div className="bg-indigo-50 rounded-xl p-4 mb-4">
-              <p className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                <span className="w-4 h-4 text-indigo-600"><Icon name="check-square" /></span>
-                Try this:
-              </p>
-              <ul className="space-y-1.5 text-sm text-slate-700">
-                {tasks.map((task, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-indigo-600 mt-0.5">•</span>
-                    <span>{task}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          <div className="flex gap-2">
-            {step > 0 && (
-              <button 
-                onClick={onPrev}
-                className="px-4 py-2 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Previous
-              </button>
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <p className="text-slate-700 mb-6 leading-relaxed">{description}</p>
+            
+            {tasks && tasks.length > 0 && (
+              <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+                <p className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <span className="w-4 h-4 text-indigo-600"><Icon name="check-square" /></span>
+                  Try this:
+                </p>
+                <ul className="space-y-2 text-sm text-slate-700">
+                  {tasks.map((task, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-indigo-600 mt-1 flex-shrink-0">•</span>
+                      <span>{task}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-            <button 
-              onClick={onNext}
-              className="flex-1 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <span>{step === totalSteps - 1 ? 'Finish Tour' : 'Next'}</span>
-              <span className="w-4 h-4"><Icon name="arrow-right" /></span>
-            </button>
+            
+            {/* Helper Text */}
+            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-xs text-amber-800">
+                <strong>💡 Tip:</strong> You can interact with the prototype while this panel is open. Try clicking on elements to the right →
+              </p>
+            </div>
+          </div>
+          
+          {/* Navigation Footer */}
+          <div className="p-6 border-t border-slate-200 bg-slate-50">
+            <div className="flex gap-2">
+              {step > 0 && (
+                <button 
+                  onClick={onPrev}
+                  className="flex items-center gap-2 px-4 py-2.5 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-white transition-colors"
+                >
+                  <span className="w-4 h-4"><Icon name="arrow-left" /></span>
+                  <span>Previous</span>
+                </button>
+              )}
+              <button 
+                onClick={onNext}
+                className="flex-1 bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <span>{step === totalSteps - 1 ? 'Finish Tour' : 'Next'}</span>
+                <span className="w-4 h-4"><Icon name="arrow-right" /></span>
+              </button>
+            </div>
+            
+            {/* Progress Dots */}
+            <div className="flex items-center justify-center gap-1.5 mt-4">
+              {Array.from({ length: totalSteps }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === step 
+                      ? 'w-8 bg-indigo-600' 
+                      : i < step 
+                      ? 'w-1.5 bg-indigo-300' 
+                      : 'w-1.5 bg-slate-300'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       );
@@ -420,8 +481,6 @@ Generated by Evercred Research Tool`;
             <TourWelcomeModal onStart={startTour} onSkip={skipTour} />
           )}
 
-          {tourActive && <div className="tour-overlay" />}
-
           <ResearcherNotesPanel 
             isOpen={showResearcherNotes} 
             onToggle={() => setShowResearcherNotes(!showResearcherNotes)} 
@@ -458,6 +517,110 @@ Generated by Evercred Research Tool`;
     // ============================================
     // END TOUR SYSTEM COMPONENTS
     // ============================================
+
+    // =====================================================
+    // NEEDS YOUR ATTENTION SECTION
+    // =====================================================
+    const NeedsYourAttention = ({ urgentItems, onActionClick }) => {
+      if (!urgentItems || urgentItems.length === 0) {
+        return (
+          <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-3">
+              <span className="w-6 h-6 text-emerald-600"><Icon name="check-circle" /></span>
+              <div>
+                <h3 className="font-semibold text-emerald-900">All caught up!</h3>
+                <p className="text-sm text-emerald-700 mt-1">No items need your attention right now.</p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const getUrgencyStyles = (level) => {
+        switch(level?.toLowerCase()) {
+          case 'critical':
+            return {
+              icon: 'alert-circle',
+              iconColor: 'text-orange-600',
+              textColor: 'text-orange-900'
+            };
+          case 'high':
+            return {
+              icon: 'alert-triangle',
+              iconColor: 'text-amber-600',
+              textColor: 'text-amber-900'
+            };
+          default:
+            return {
+              icon: 'info',
+              iconColor: 'text-blue-600',
+              textColor: 'text-blue-900'
+            };
+        }
+      };
+
+      return (
+        <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl overflow-hidden mb-6">
+          <div className="bg-orange-100 px-6 py-3 border-b border-orange-200">
+            <h3 className="font-semibold text-orange-900 flex items-center gap-2">
+              <span className="w-5 h-5"><Icon name="alert-circle" /></span>
+              NEEDS YOUR ATTENTION
+            </h3>
+          </div>
+          
+          <div className="divide-y divide-orange-100">
+            {urgentItems.slice(0, 5).map((item, idx) => {
+              const styles = getUrgencyStyles(item.attentionLevel);
+              
+              return (
+                <div key={item.id || idx} className="p-4 hover:bg-orange-100/50 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <span className={`w-5 h-5 flex-shrink-0 mt-0.5 ${styles.iconColor}`}>
+                      <Icon name={styles.icon} />
+                    </span>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold ${styles.textColor}`}>
+                        {item.title || item.description}
+                      </p>
+                      
+                      {item.subtitle && (
+                        <p className="text-sm text-slate-700 mt-1">{item.subtitle}</p>
+                      )}
+                      
+                      {item.dueDisplay && (
+                        <p className="text-xs font-medium text-orange-700 mt-1">
+                          {item.dueDisplay}
+                        </p>
+                      )}
+                    </div>
+                    
+                    {item.actionButton && (
+                      <button
+                        onClick={() => onActionClick && onActionClick(item)}
+                        className="flex items-center gap-1 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
+                      >
+                        {item.actionButton}
+                        <span className="w-4 h-4"><Icon name="arrow-right" /></span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {urgentItems.length > 5 && (
+            <div className="px-6 py-3 bg-orange-50 border-t border-orange-200">
+              <button className="text-sm font-medium text-orange-700 hover:text-orange-900 flex items-center gap-1">
+                View All ({urgentItems.length})
+                <span className="w-4 h-4"><Icon name="arrow-right" /></span>
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    };
 
     // Request Credentials Modal
     function RequestCredentialsModal({ isOpen, onClose, onSubmit, physicianName }) {
@@ -2032,7 +2195,7 @@ Generated by Evercred Research Tool`;
     // =====================================================
     // OVERVIEW VIEW
     // =====================================================
-    const OverviewView = ({ credentials, physician, onVerify, onViewCredential, onViewProof, packetActivities, onRequestCredentials }) => {
+    const OverviewView = ({ credentials, physician, onVerify, onViewCredential, onViewProof, packetActivities, onRequestCredentials, urgentItems }) => {
       return (
         <div>
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Overview</h2>
@@ -2095,6 +2258,9 @@ Generated by Evercred Research Tool`;
               </div>
             </div>
           </div>
+          
+          {/* Needs Your Attention Section */}
+          <NeedsYourAttention urgentItems={urgentItems} onActionClick={onRequestCredentials} />
           
           {/* Packet Activity Feed */}
           <div className="mb-6">
@@ -2190,6 +2356,34 @@ Generated by Evercred Research Tool`;
       
       const missingItems = [
         { category: 'Provider Personal Information', items: ['CAQH Provider ID'] }
+      ];
+      
+      // Urgent items for "Needs Your Attention" section
+      const urgentItems = [
+        {
+          id: 'urgent-1',
+          title: 'Board Certification expired - Renewal required',
+          subtitle: 'Emergency Medicine certification (ABEM #53460)',
+          attentionLevel: 'critical',
+          dueDisplay: 'Expired Dec 21, 2023',
+          actionButton: 'Upload Renewal'
+        },
+        {
+          id: 'urgent-2',
+          title: 'DEA Registration verification pending',
+          subtitle: 'Primary source verification needed (3 tokens)',
+          attentionLevel: 'high',
+          dueDisplay: 'Required for privileging',
+          actionButton: 'Verify Now'
+        },
+        {
+          id: 'urgent-3',
+          title: 'Missing CAQH Provider ID',
+          subtitle: 'Required for NCQA compliance',
+          attentionLevel: 'high',
+          dueDisplay: 'Needed for packet completion',
+          actionButton: 'Request Info'
+        }
       ];
       
       // Packet-level activity feed (from PSV requirements - Activity Feed tab)
@@ -2496,7 +2690,7 @@ Generated by Evercred Research Tool`;
             
             <main className="flex-1 overflow-y-auto p-6">
               {activeSection === 'dashboard' && (
-                <OverviewView credentials={credentials} physician={physician} onVerify={handleVerifyClick} onViewCredential={handleViewCredential} onViewProof={handleViewProof} packetActivities={packetActivities} onRequestCredentials={() => setShowRequestCredentialsModal(true)} />
+                <OverviewView credentials={credentials} physician={physician} onVerify={handleVerifyClick} onViewCredential={handleViewCredential} onViewProof={handleViewProof} packetActivities={packetActivities} onRequestCredentials={() => setShowRequestCredentialsModal(true)} urgentItems={urgentItems} />
               )}
               
               {activeSection === 'contact' && (
