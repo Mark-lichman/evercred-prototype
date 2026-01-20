@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evercred Credential Verification - Prototype v6.0</title>
+  <title>Evercred Credential Verification - Research Prototype v6.0</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -26,6 +26,28 @@
       to { opacity: 1; transform: translateX(0); }
     }
     .animate-slide-in-right { animation: slide-in-right 0.3s ease-out; }
+    
+    /* Tour System Styles */
+    .tour-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .tour-highlight {
+      position: relative;
+      z-index: 1001;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.5), 0 0 0 9999px rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+    }
+    @keyframes bounce-subtle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .animate-bounce-subtle { 
+      animation: bounce-subtle 2s ease-in-out infinite; 
+    }
   </style>
 </head>
 <body>
@@ -46,6 +68,396 @@
       }, [name]);
       return <span ref={ref} className={`inline-flex ${className}`} style={{ width: '1em', height: '1em' }} />;
     };
+
+    // ============================================
+    // TOUR SYSTEM COMPONENTS
+    // ============================================
+
+    // ============================================
+    // TOUR CONFIGURATION - EDIT HERE FOR TOUR CONTENT
+    // ============================================
+    // This section contains all the text and tasks for the guided tour.
+    // Edit the title, description, and tasks for each tour stop below.
+    // To add a new tour stop, copy an existing block and modify it.
+    // To remove a tour stop, delete the entire block.
+    
+    const TOUR_STOPS = [
+      {
+        id: 'overview',
+        title: 'Overview Dashboard',
+        description: 'This is your main view showing all credentials at a glance. Notice the verification status badges and the overall completion metrics.',
+        tasks: [
+          'Scan the credential cards - what stands out to you?',
+          'Check the verification status indicators',
+          'Look at the activity feed on the right'
+        ]
+      },
+      {
+        id: 'credential-card',
+        title: 'Credential Cards',
+        description: 'Each credential shows key information, verification status, and available actions. Verified credentials show proof of verification.',
+        tasks: [
+          'Click "View Proof" on the California Medical License',
+          'Notice the verification details and AI agent notes',
+          'Check the timestamp and verification source'
+        ]
+      },
+      {
+        id: 'verify-action',
+        title: 'Token-Based Verification',
+        description: 'You can trigger AI-powered verification for unverified credentials. This uses "tokens" which represent the cost of automated verification. Simple credentials (licenses, certifications) cost 3-5 tokens, while complex verifications (work history, education) cost 20-80 tokens.',
+        tasks: [
+          'Click "Verify Now" on an unverified credential',
+          'Review the cost confirmation modal',
+          'Notice the token cost varies by credential complexity'
+        ]
+      },
+      {
+        id: 'tokens-panel',
+        title: 'Token Balance & Progress',
+        description: 'Click on your token balance in the header to see verifications in progress, completed verifications, and purchase more tokens when needed.',
+        tasks: [
+          'Click the token badge in the header',
+          'Review verifications in progress with status bars',
+          'Notice the "Buy More Credits" option'
+        ]
+      },
+      {
+        id: 'activity-feed',
+        title: 'Activity Feed & Audit Trail',
+        description: 'The activity feed shows a complete audit trail of all actions taken on this credential packet. This meets Joint Commission and NCQA requirements.',
+        tasks: [
+          'Review the different types of activities',
+          'Notice the attention level indicators (red = urgent)',
+          'Look for items requiring your action'
+        ]
+      },
+      {
+        id: 'sidebar-navigation',
+        title: 'Navigation & Organization',
+        description: 'Credentials are organized by category in the sidebar. The progress indicators show verification completeness for each section.',
+        tasks: [
+          'Click through different sections (Licenses, Boards, Education)',
+          'Notice how credentials are grouped logically',
+          'Check the verification count for each section'
+        ]
+      },
+      {
+        id: 'protected-data',
+        title: 'Protected Information',
+        description: 'Sensitive information like SSN is protected using HashiCorp Vault encryption. The mask icon indicates secured fields.',
+        tasks: [
+          'Navigate to Contact & Demographics',
+          'Look for the "Vault" badge next to SSN',
+          'Notice how sensitive data is masked for security'
+        ]
+      },
+      {
+        id: 'request-credentials',
+        title: 'Requesting Additional Credentials',
+        description: 'If you need credentials that weren\'t included in the original packet, you can request them directly from the physician.',
+        tasks: [
+          'Look for the "Request Credentials" button',
+          'Click it to see what credentials you can request',
+          'Notice you can add notes about why you need them'
+        ]
+      }
+    ];
+
+    // Tour Welcome Modal
+    function TourWelcomeModal({ onStart, onSkip }) {
+      return (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[2000] animate-slide-up">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-8">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="w-8 h-8 text-white"><Icon name="shield" /></span>
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome to Evercred</h2>
+              <p className="text-lg text-slate-600">User Research Prototype</p>
+            </div>
+            
+            <div className="bg-indigo-50 rounded-xl p-6 mb-6">
+              <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                <span className="w-5 h-5 text-indigo-600"><Icon name="info" /></span>
+                About This Session
+              </h3>
+              <p className="text-slate-700 mb-4">
+                This is an interactive prototype of Evercred's enterprise credential verification platform. 
+                You'll be reviewing a credential packet for Dr. Leah Houston that has been shared with Harbor UCLA Medical Center.
+              </p>
+              <div className="space-y-2 text-sm text-slate-600">
+                <p><strong>Your role:</strong> Credentialing Specialist at Harbor UCLA Medical Center</p>
+                <p><strong>Task:</strong> Review and verify physician credentials for privileging</p>
+                <p><strong>Estimated time:</strong> 10-15 minutes</p>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <span className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"><Icon name="lightbulb" /></span>
+                <div className="text-sm text-slate-700">
+                  <p className="font-semibold mb-1">Please think aloud</p>
+                  <p>Share your thoughts as you explore: What do you notice? What questions arise? What would you do next in your real workflow?</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={onStart}
+                className="flex-1 bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <span>Start Guided Tour</span>
+                <span className="w-5 h-5"><Icon name="arrow-right" /></span>
+              </button>
+              <button 
+                onClick={onSkip}
+                className="px-6 py-3 border-2 border-slate-300 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Explore Freely
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Tour Tooltip Component
+    function TourTooltip({ step, totalSteps, title, description, tasks, onNext, onPrev, onSkip }) {
+      return (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 bg-white rounded-2xl shadow-2xl border-2 border-indigo-500 p-6 z-[1002] animate-slide-up">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-semibold text-indigo-600">
+              Step {step + 1} of {totalSteps}
+            </span>
+            <button onClick={onSkip} className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+              Skip tour
+            </button>
+          </div>
+          
+          <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
+          <p className="text-slate-600 mb-4">{description}</p>
+          
+          {tasks && tasks.length > 0 && (
+            <div className="bg-indigo-50 rounded-xl p-4 mb-4">
+              <p className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                <span className="w-4 h-4 text-indigo-600"><Icon name="check-square" /></span>
+                Try this:
+              </p>
+              <ul className="space-y-1.5 text-sm text-slate-700">
+                {tasks.map((task, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-indigo-600 mt-0.5">•</span>
+                    <span>{task}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          <div className="flex gap-2">
+            {step > 0 && (
+              <button 
+                onClick={onPrev}
+                className="px-4 py-2 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Previous
+              </button>
+            )}
+            <button 
+              onClick={onNext}
+              className="flex-1 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <span>{step === totalSteps - 1 ? 'Finish Tour' : 'Next'}</span>
+              <span className="w-4 h-4"><Icon name="arrow-right" /></span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Researcher Notes Panel
+    function ResearcherNotesPanel({ isOpen, onToggle }) {
+      const [notes, setNotes] = useState('');
+      const [timestamp, setTimestamp] = useState('');
+
+      useEffect(() => {
+        if (isOpen) {
+          const timer = setInterval(() => {
+            const now = new Date();
+            setTimestamp(now.toLocaleTimeString());
+          }, 1000);
+          return () => clearInterval(timer);
+        }
+      }, [isOpen]);
+
+      const exportNotes = () => {
+        const content = `EVERCRED USER RESEARCH NOTES
+Session Date: ${new Date().toLocaleDateString()}
+Session Time: ${new Date().toLocaleTimeString()}
+
+${notes}
+
+---
+Generated by Evercred Research Tool`;
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `evercred-notes-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      if (!isOpen) {
+        return (
+          <button
+            onClick={onToggle}
+            className="fixed right-0 top-1/2 -translate-y-1/2 bg-indigo-600 text-white px-3 py-4 rounded-l-xl shadow-lg hover:bg-indigo-700 transition-all z-50 flex flex-col items-center gap-2"
+            title="Open Researcher Notes"
+          >
+            <span className="w-5 h-5"><Icon name="sticky-note" /></span>
+            <span className="font-semibold text-xs whitespace-nowrap writing-mode-vertical">Notes</span>
+          </button>
+        );
+      }
+
+      return (
+        <div className="fixed right-0 top-0 h-full w-80 bg-white border-l-2 border-indigo-500 shadow-2xl z-50 flex flex-col animate-slide-in-right">
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-indigo-50">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 text-indigo-600"><Icon name="sticky-note" /></span>
+              <h3 className="font-semibold text-slate-900">Researcher Notes</h3>
+            </div>
+            <button onClick={onToggle} className="p-1 hover:bg-indigo-100 rounded transition-colors">
+              <span className="w-5 h-5 text-slate-500"><Icon name="x" /></span>
+            </button>
+          </div>
+          
+          <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <span className="text-xs text-slate-600">Session time:</span>
+            <span className="text-sm font-mono font-semibold text-slate-900">{timestamp}</span>
+          </div>
+
+          <div className="p-4 bg-amber-50 border-b border-amber-200">
+            <p className="text-xs text-slate-700">
+              <strong>Observation tips:</strong> Note reactions, pain points, questions, confusion moments, unexpected behaviors, and direct quotes.
+            </p>
+          </div>
+
+          <div className="flex-1 p-4">
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="00:00 - User first impression&#10;- Noticed verification badges immediately&#10;- Asked about token cost&#10;&#10;02:30 - Activity feed exploration&#10;- Appreciated the audit trail&#10;- &quot;This would save us during Joint Commission&quot;&#10;&#10;05:15 - Verification workflow&#10;- Hesitated at cost confirmation&#10;- Questioned AI accuracy"
+              className="w-full h-full resize-none border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+            />
+          </div>
+
+          <div className="p-4 border-t border-slate-200 bg-slate-50">
+            <button 
+              onClick={exportNotes}
+              className="w-full bg-indigo-600 text-white font-medium py-2.5 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="w-4 h-4"><Icon name="download" /></span>
+              <span>Export Notes</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Tour Provider Component
+    function TourProvider({ children }) {
+      const [showWelcome, setShowWelcome] = useState(true);
+      const [tourActive, setTourActive] = useState(false);
+      const [currentStep, setCurrentStep] = useState(0);
+      const [showResearcherNotes, setShowResearcherNotes] = useState(false);
+
+      const startTour = () => {
+        setShowWelcome(false);
+        setTourActive(true);
+        setCurrentStep(0);
+      };
+
+      const skipTour = () => {
+        setShowWelcome(false);
+        setTourActive(false);
+      };
+
+      const nextStep = () => {
+        if (currentStep < TOUR_STOPS.length - 1) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          setTourActive(false);
+        }
+      };
+
+      const prevStep = () => {
+        if (currentStep > 0) {
+          setCurrentStep(currentStep - 1);
+        }
+      };
+
+      const skipTourMidway = () => {
+        setTourActive(false);
+      };
+
+      const restartTour = () => {
+        setTourActive(true);
+        setCurrentStep(0);
+      };
+
+      const currentTourStop = TOUR_STOPS[currentStep];
+
+      return (
+        <>
+          {showWelcome && (
+            <TourWelcomeModal onStart={startTour} onSkip={skipTour} />
+          )}
+
+          {tourActive && <div className="tour-overlay" />}
+
+          <ResearcherNotesPanel 
+            isOpen={showResearcherNotes} 
+            onToggle={() => setShowResearcherNotes(!showResearcherNotes)} 
+          />
+
+          {!tourActive && !showWelcome && (
+            <button
+              onClick={restartTour}
+              className="fixed bottom-6 left-6 bg-indigo-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-indigo-700 transition-all z-40 flex items-center gap-2 animate-bounce-subtle"
+            >
+              <span className="w-5 h-5"><Icon name="help-circle" /></span>
+              <span className="font-semibold text-sm">Restart Tour</span>
+            </button>
+          )}
+
+          {tourActive && (
+            <TourTooltip
+              step={currentStep}
+              totalSteps={TOUR_STOPS.length}
+              title={currentTourStop.title}
+              description={currentTourStop.description}
+              tasks={currentTourStop.tasks}
+              onNext={nextStep}
+              onPrev={prevStep}
+              onSkip={skipTourMidway}
+            />
+          )}
+
+          {children}
+        </>
+      );
+    }
+
+    // ============================================
+    // END TOUR SYSTEM COMPONENTS
+    // ============================================
 
     // Request Credentials Modal
     function RequestCredentialsModal({ isOpen, onClose, onSubmit, physicianName }) {
@@ -1445,12 +1857,28 @@
                 </div>
                 <div className="flex items-center border-b border-slate-100 pb-3">
                   <span className="text-sm text-slate-500 w-48">Date of Birth</span>
-                  <span className="text-sm text-slate-400 flex-1">{physician.dateOfBirth || '-'}</span>
-                  {!physician.dateOfBirth && <span className="w-5 h-5 text-slate-400"><Icon name="file-plus" /></span>}
+                  <span className="text-sm font-medium text-slate-900 flex-1">{physician.dateOfBirth || '-'}</span>
+                  {physician.dateOfBirth ? <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span> : <span className="w-5 h-5 text-slate-400"><Icon name="file-plus" /></span>}
                 </div>
                 <div className="flex items-center border-b border-slate-100 pb-3">
                   <span className="text-sm text-slate-500 w-48">NPI</span>
                   <span className="text-sm font-medium text-slate-900 flex-1">{physician.npi}</span>
+                  <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
+                </div>
+                <div className="flex items-center border-b border-slate-100 pb-3">
+                  <span className="text-sm text-slate-500 w-48">Social Security Number</span>
+                  <span className="text-sm font-medium text-slate-900 flex-1 flex items-center gap-2">
+                    {physician.ssn}
+                    {physician.ssnProtected && (
+                      <button 
+                        className="flex items-center gap-1 px-2 py-1 bg-purple-50 border border-purple-200 rounded-md text-xs text-purple-700 hover:bg-purple-100 transition-colors"
+                        title="Protected by HashiCorp Vault"
+                      >
+                        <span className="w-3 h-3"><Icon name="shield-check" /></span>
+                        <span className="font-medium">Vault</span>
+                      </button>
+                    )}
+                  </span>
                   <span className="w-5 h-5 text-emerald-500"><Icon name="check" /></span>
                 </div>
                 <div className="flex items-center pb-3">
@@ -1487,6 +1915,114 @@
                   <span className="w-5 h-5 text-slate-400"><Icon name="lock" /></span>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // =====================================================
+    // CREDITS PANEL MODAL
+    // =====================================================
+    const CreditsPanel = ({ isOpen, onClose, currentTokens, verifications }) => {
+      if (!isOpen) return null;
+      
+      return (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 animate-slide-up">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">My Agent Credits</h2>
+                <p className="text-slate-600 mt-1">Token balance and verification status</p>
+              </div>
+              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
+                <span className="w-6 h-6 text-slate-400"><Icon name="x" /></span>
+              </button>
+            </div>
+            
+            {/* Current Balance */}
+            <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-b border-amber-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                    <span className="w-6 h-6 text-white"><Icon name="coins" /></span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-amber-700 font-medium">Current Balance</p>
+                    <p className="text-3xl font-bold text-amber-900">{currentTokens}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-amber-700">CREDITS</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Verifications in Progress */}
+            {verifications && verifications.inProgress && verifications.inProgress.length > 0 && (
+              <div className="p-6 border-b border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4">Verifications in Progress</h3>
+                <div className="space-y-4">
+                  {verifications.inProgress.map((item, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-900">{item.physicianName}</p>
+                          <p className="text-xs text-slate-500">{item.credential}</p>
+                        </div>
+                        <span className="text-xs text-indigo-600 font-medium">{item.progress}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Completed Verifications */}
+            {verifications && verifications.completed && verifications.completed.length > 0 && (
+              <div className="p-6 border-b border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-900 mb-4">Recently Completed</h3>
+                <div className="space-y-3">
+                  {verifications.completed.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                          <span className="w-4 h-4 text-emerald-600"><Icon name="check-circle" /></span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-900">{item.physicianName}</p>
+                          <p className="text-xs text-slate-500">{item.credential}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-emerald-600 font-medium">Verified</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="p-6 flex gap-3">
+              <button 
+                onClick={onClose}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-slate-300 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <span className="w-5 h-5"><Icon name="user" /></span>
+                <span>My Account</span>
+              </button>
+              <button 
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all"
+              >
+                <span className="w-5 h-5"><Icon name="plus-circle" /></span>
+                <span>Buy More Credits</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1634,25 +2170,26 @@
       const [selectedDocument, setSelectedDocument] = useState(null);
       const [selectedCredential, setSelectedCredential] = useState(null);
       const [verifyingId, setVerifyingId] = useState(null);
-      const [tokens, setTokens] = useState(31);
+      const [tokens, setTokens] = useState(572);
       
       const physician = {
         name: 'Leah Houston, MD',
         fullLegalName: 'Leah Christine Houston, MD',
         gender: 'Female',
-        dateOfBirth: null,
+        dateOfBirth: 'June 15, 1982',
         specialty: 'Emergency Medicine',
         phone: '212-518-6685',
         email: 'Leah@hpec.io',
         address: '123 Spring Street, Anytown PA, 12121',
-        ssn: 'Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢-Ã¢â‚¬Â¢Ã¢â‚¬Â¢-1234',
+        ssn: '•••-••-1234',
+        ssnProtected: true,
         npi: '1234567890',
         caqhId: null,
         bio: 'Board-certified emergency medicine physician with over 15 years of experience. Graduate of Albany Medical College. Founder of HPEC, Inc. Passionate about improving healthcare credentialing processes.'
       };
       
       const missingItems = [
-        { category: 'Provider Personal Information', items: ['Date of birth', 'CAQH Provider ID'] }
+        { category: 'Provider Personal Information', items: ['CAQH Provider ID'] }
       ];
       
       // Packet-level activity feed (from PSV requirements - Activity Feed tab)
@@ -1728,7 +2265,7 @@
           documentStatus: 'ACTIVE',
           verificationMethod: 'Automated',
           verifiedBy: 'Evercred AI-Agent',
-          tokenCost: 1,
+          tokenCost: 4,
           physicianName: 'Dr. Leah Houston',
           expiryDate: '08-31-2026',
           verificationPortal: 'NY State Education Department',
@@ -1752,7 +2289,7 @@
           documentStatus: 'ACTIVE',
           verificationMethod: 'Automated',
           verifiedBy: 'Evercred AI-Agent',
-          tokenCost: 1,
+          tokenCost: 5,
           physicianName: 'Dr. Leah Houston',
           expiryDate: 'Permanent',
           verificationPortal: 'Medical Board of California',
@@ -1773,7 +2310,7 @@
           number: 'FH1234567',
           status: 'UNVERIFIED',
           documentStatus: 'ACTIVE',
-          tokenCost: 1,
+          tokenCost: 3,
           physicianName: 'Dr. Leah Houston',
           nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
           expiryDate: '12-31-2026',
@@ -1789,7 +2326,7 @@
           number: 'AMC-2012-EM',
           status: 'UNVERIFIED',
           documentStatus: 'COMPLETED',
-          tokenCost: 2,
+          tokenCost: 45,
           physicianName: 'Dr. Leah Houston',
           nameOnRecord: 'HOUSTON, LEAH MD',
           expiryDate: 'N/A',
@@ -1807,7 +2344,7 @@
           status: 'UNVERIFIED',
           documentStatus: 'EXPIRED',
           daysUntilExpiry: -388,
-          tokenCost: 1,
+          tokenCost: 4,
           physicianName: 'Dr. Leah Houston',
           nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
           expiryDate: '12-21-2023',
@@ -1823,7 +2360,7 @@
           number: 'CV-2026-LH-001',
           status: 'VERIFIED',
           documentStatus: 'VERIFIED',
-          tokenCost: 5,
+          tokenCost: 65,
           physicianName: 'Dr. Leah Houston',
           nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
           expiryDate: 'N/A',
@@ -2038,6 +2575,20 @@
           )}
           
           <CostConfirmationModal credential={selectedCredential} onConfirm={handleConfirmVerify} onCancel={() => setShowModal(false)} isOpen={showModal} currentTokens={tokens} />
+          <CreditsPanel 
+            isOpen={showCreditsPanel} 
+            onClose={() => setShowCreditsPanel(false)} 
+            currentTokens={tokens}
+            verifications={{
+              inProgress: [
+                { physicianName: 'Leah Houston', credential: 'Medical License', progress: 65 }
+              ],
+              completed: [
+                { physicianName: 'Leah Houston', credential: 'Medical License - California', verified: true },
+                { physicianName: 'Leah Houston', credential: 'Medical License - New York', verified: true }
+              ]
+            }}
+          />
           <DocumentPreviewModal document={selectedDocument} isOpen={showDocPreview} onClose={() => setShowDocPreview(false)} />
           <VerificationProofModal credential={selectedCredential} isOpen={showProofModal} onClose={() => setShowProofModal(false)} />
           <RequestMissingInfoModal isOpen={showRequestInfoModal} onClose={() => setShowRequestInfoModal(false)} physician={physician} missingItems={missingItems} />
@@ -2047,7 +2598,12 @@
       );
     }
 
-    ReactDOM.render(<App />, document.getElementById('root'));
+    ReactDOM.render(
+      <TourProvider>
+        <App />
+      </TourProvider>, 
+      document.getElementById('root')
+    );
   </script>
 </body>
 </html>
