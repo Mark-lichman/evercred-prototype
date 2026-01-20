@@ -1,451 +1,174 @@
-# 🎉 v6.3 - Version History & Documentation Access
+# Evercred Prototype v6.4 - User Testing Guide
 
-## What's New
-
-**Built-in version information and release notes accessible directly from the prototype!**
-
----
-
-## ✨ New Feature: Version Information System
-
-### **1. Version Badge in Header**
-
-**Location:** Header, between token balance and notifications
-
-**Appearance:**
-```
-[💰 572 tokens]  [ℹ️ v6.3]  [🔔]
-```
-
-**Design:**
-- Light gray background (`bg-slate-100`)
-- Info icon + version number
-- Hover effect (darkens)
-- Tooltip: "View version information and release notes"
-
-### **2. Version Information Modal**
-
-**Triggered by:** Clicking the version badge
-
-**Features:**
-- Two-tab interface
-- Complete changelog
-- Release highlights
-- Version history
+## Overview
+This prototype has been optimized for semi-moderated user testing sessions on Zoom calls with credentialing specialists.
 
 ---
 
-## 📋 Modal Layout
+## ✅ Implemented Changes
 
-### **Tab 1: Current Version**
+### High Priority
+| Change | Status | Details |
+|--------|--------|---------|
+| Replace "Enterprise" → "Organization" | ✅ Done | Changed in breadcrumb and welcome modal |
+| Fix modal z-index layering | ✅ Done | Base modals: `z-50`, nested modals: `z-[60]` |
+| Make tour panel collapsible | ✅ Done | Minimize to icon, close completely, keyboard shortcuts |
 
-```
-┌─────────────────────────────────────────────┐
-│ Version Information              [×]        │
-│ Evercred Prototype v6.3                     │
-├─────────────────────────────────────────────┤
-│ [Current Version] [Version History]         │
-├─────────────────────────────────────────────┤
-│                                             │
-│ ┌─────────────────────────────────────┐   │
-│ │ v6.3    January 20, 2026            │   │
-│ │ Version History & Documentation     │   │
-│ │ Latest research prototype with      │   │
-│ │ enhanced UX features                │   │
-│ └─────────────────────────────────────┘   │
-│                                             │
-│ ⭐ Key Highlights                          │
-│ ✓ Clickable version badge in header        │
-│ ✓ Version information modal                 │
-│ ✓ Complete changelog for all versions      │
-│ ✓ Tabbed interface                         │
-│                                             │
-│ 📋 Changelog                               │
-│ ➕ Version badge in header (clickable)     │
-│ ➕ Version information modal                │
-│ ➕ Built-in changelog viewer                │
-│ ➕ Version history tab                      │
-│                                             │
-├─────────────────────────────────────────────┤
-│ Prototype Mode: Research & User Testing    │
-│ Built for Evercred                 [Close] │
-└─────────────────────────────────────────────┘
-```
+### Medium Priority
+| Change | Status | Details |
+|--------|--------|---------|
+| URL parameters for test modes | ✅ Done | `?skipWelcome`, `?hideTokens`, `?minimal` |
+| Progressive z-index for nested modals | ✅ Done | View Proof from Credential Detail now stacks properly |
 
-### **Tab 2: Version History**
+### Low Priority
+| Change | Status | Details |
+|--------|--------|---------|
+| Remove researcher notes panel | ✅ Done | Removed (not needed for recorded sessions) |
+| Add reset demo function | ✅ Done | Button + keyboard shortcut |
+
+---
+
+## 🔗 URL Parameters for Testing
+
+Use these URL parameters to customize the prototype for different testing scenarios:
 
 ```
-┌─────────────────────────────────────────────┐
-│ Version Information              [×]        │
-│ Evercred Prototype v6.3                     │
-├─────────────────────────────────────────────┤
-│ [Current Version] [Version History]         │
-├─────────────────────────────────────────────┤
-│                                             │
-│ v6.3  January 20, 2026         [Current]   │
-│ Version History & Documentation             │
-│ • Clickable version badge in header         │
-│ • Version information modal                 │
-│ • Complete changelog for all versions       │
-│ • Tabbed interface                          │
-│ ─────────────────────────────────────────  │
-│                                             │
-│ v6.2  January 20, 2026                     │
-│ Major UX Improvements                       │
-│ • Tour side panel (non-blocking)            │
-│ • "Needs Your Attention" section            │
-│ • Minimizable tour with progress            │
-│ • Urgency-based alert styling               │
-│                                             │
-│ v6.1  January 19, 2026                     │
-│ Token System & Security Updates             │
-│ • Token count updated to 572                │
-│ • Clickable credits modal                   │
-│ • HashiCorp Vault protection                │
-│ • Realistic token costs (3-80)              │
-│                                             │
-│ v6.0  January 18, 2026                     │
-│ Research Features & Tour System             │
-│ • Interactive guided tour system            │
-│ • Researcher notes panel                    │
-│ • Welcome modal for orientation             │
-│ • Easy-to-edit tour configuration           │
-│                                             │
-├─────────────────────────────────────────────┤
-│ Prototype Mode: Research & User Testing    │
-│ Built for Evercred                 [Close] │
-└─────────────────────────────────────────────┘
+Base URL: https://evercred-prototype-production.up.railway.app/
+```
+
+### Available Parameters
+
+| Parameter | Effect | Example |
+|-----------|--------|---------|
+| `?skipWelcome=true` | Skip the welcome modal | Direct to prototype |
+| `?hideTokens=true` | Hide token display | Removes token count from header |
+| `?minimal=true` | Minimal UI mode | Skip welcome + collapsed tour |
+
+### Recommended URLs for Testing
+
+**Standard user test (guided):**
+```
+https://evercred-prototype-production.up.railway.app/
+```
+
+**Quick demo (skip intro):**
+```
+https://evercred-prototype-production.up.railway.app/?skipWelcome=true
+```
+
+**Minimal mode (experienced users):**
+```
+https://evercred-prototype-production.up.railway.app/?minimal=true
+```
+
+**Hide pricing (focus on workflow):**
+```
+https://evercred-prototype-production.up.railway.app/?hideTokens=true
+```
+
+**Combined options:**
+```
+https://evercred-prototype-production.up.railway.app/?skipWelcome=true&hideTokens=true
 ```
 
 ---
 
-## 🎨 Design Details
+## ⌨️ Keyboard Shortcuts for Moderators
 
-### **Version Badge:**
-- **Size:** Compact (px-3 py-1.5)
-- **Icon:** Info circle (4x4)
-- **Text:** "v6.3" (extra small, semibold)
-- **States:**
-  - Default: Gray (`slate-100` bg, `slate-600` text)
-  - Hover: Darker (`slate-200` bg, `slate-900` text)
-- **Cursor:** Pointer
-- **Tooltip:** Informative
-
-### **Modal:**
-- **Width:** Max 3xl (48rem / 768px)
-- **Height:** Max 85vh (scrollable)
-- **Z-index:** 2001 (above everything)
-- **Animation:** Slide up
-- **Backdrop:** Blurred dark overlay
-
-### **Change Type Icons:**
-- 🆕 **New** (Green): `plus-circle`
-- ⬆️ **Improved** (Blue): `arrow-up-circle`
-- ✅ **Fixed** (Purple): `check-circle`
+| Shortcut | Action |
+|----------|--------|
+| `T` | Toggle tour panel (show/hide) |
+| `Esc` | Minimize tour panel |
+| `Ctrl+Shift+R` | Reset demo (reload page) |
 
 ---
 
-## 🎯 User Flow
+## 🎯 UI Controls
 
-### **Accessing Version Info:**
+### Tour Panel (Left Side)
+- **Width:** 320px (narrower than before)
+- **Position:** Left side of screen
+- **Minimize:** Click `-` button or press `T` / `Esc`
+- **Close:** Click `×` button (hides until restart)
+- **Expand:** Click the collapsed tab or press `T`
 
-1. User sees "v6.3" badge in header
-2. User hovers → Badge darkens
-3. User clicks → Modal opens
-4. User sees current version tab
-5. User reads highlights and changelog
-6. User clicks "Version History" tab
-7. User sees all previous versions
-8. User clicks "Close" or clicks outside
-
----
-
-## 💡 Use Cases
-
-### **For Researchers:**
-```
-"What version are my participants using?"
-→ Check header badge
-→ v6.3 clearly displayed
-```
-
-### **For Stakeholders:**
-```
-"What's new in this prototype?"
-→ Click version badge
-→ Read highlights and changelog
-```
-
-### **For Participants:**
-```
-"I want to see what changed"
-→ Click v6.3 badge
-→ Browse version history
-```
-
-### **For Documentation:**
-```
-"I need to reference what features exist"
-→ Open version info modal
-→ See complete feature list
-```
+### Control Buttons (Bottom Right)
+- **Tour Button:** Appears when tour is closed, click to restart
+- **Reset Button:** Always visible, reloads the demo
 
 ---
 
-## 🚀 Benefits
+## 📋 Modal Stacking Order
 
-### **Transparency:**
-- Always visible version number
-- Clear release information
-- Complete changelog
+Modals now stack properly with progressive z-indexes:
 
-### **Accessibility:**
-- One click to access
-- No need for external docs
-- Built-in documentation
+| Layer | Z-Index | Modals |
+|-------|---------|--------|
+| Base | `z-50` | Credential Detail, Request Credentials, Cost Confirmation |
+| Nested | `z-[60]` | View Proof, Document Preview |
+| Tour | `z-[1002]` | Tour panel |
+| Welcome | `z-[2000]` | Welcome modal |
+| Version Info | `z-[2001]` | Version information modal |
 
-### **Professionalism:**
-- Industry-standard pattern
-- Clean, polished interface
-- Comprehensive information
-
-### **Research Value:**
-- Easy version tracking
-- Clear feature timeline
-- Participant awareness
+**Result:** Clicking "View Proof" from within Credential Detail now displays correctly on top.
 
 ---
 
-## 📊 Version History Data
+## 🎬 Pre-Session Checklist
 
-The system tracks these fields for each version:
+Before each user test session:
 
-```javascript
-{
-  version: '6.3',
-  date: 'January 20, 2026',
-  title: 'Version History & Documentation',
-  highlights: [
-    'Key feature 1',
-    'Key feature 2',
-    'Key feature 3'
-  ],
-  changes: [
-    { type: 'new', text: 'New feature description' },
-    { type: 'improved', text: 'Improvement description' },
-    { type: 'fixed', text: 'Bug fix description' }
-  ]
-}
-```
-
-### **Current Versions in History:**
-- ✅ v6.3 - Version History & Documentation
-- ✅ v6.2 - Major UX Improvements
-- ✅ v6.1 - Token System & Security Updates
-- ✅ v6.0 - Research Features & Tour System
+1. **Test URL:** Verify the prototype loads correctly
+2. **Clear browser cache:** Ensure fresh state
+3. **Choose URL variant:** Select appropriate parameters for participant
+4. **Test Reset:** Verify `Ctrl+Shift+R` works
+5. **Check recording:** Confirm Zoom is recording
+6. **Review tour stops:** Know the 6 tour stops for guidance
 
 ---
 
-## 🔧 Updating Version History
+## 📝 During the Session
 
-To add a new version, edit the `VERSION_HISTORY` array in `index.html`:
+### If participant gets stuck:
+- Use `T` to show/hide tour panel
+- Use keyboard shortcuts to navigate quickly
+- Reset with `Ctrl+Shift+R` if needed
 
-### **Location:** Line ~1009 (after NeedsYourAttention component)
-
-### **Steps:**
-1. Find `const VERSION_HISTORY = [`
-2. Add new version object at the top (array position 0)
-3. Update version badge text in header
-4. Update page title
-
-### **Template:**
-```javascript
-{
-  version: '6.4',  // New version number
-  date: 'January 21, 2026',  // Release date
-  title: 'Your Feature Title',  // Short title
-  highlights: [  // 3-4 key features
-    'Feature 1',
-    'Feature 2',
-    'Feature 3'
-  ],
-  changes: [  // Detailed changelog
-    { type: 'new', text: 'New feature' },
-    { type: 'improved', text: 'Enhancement' },
-    { type: 'fixed', text: 'Bug fix' }
-  ]
-}
-```
+### Key areas to observe:
+1. Initial reaction to dashboard
+2. Understanding of verification status badges
+3. Interaction with credential cards
+4. Response to "Needs Your Attention" alerts
+5. Token/cost perception (if visible)
+6. Activity feed comprehension
 
 ---
 
-## 🎨 Customization Options
+## 🔄 Version History
 
-### **Badge Style:**
-You can change the badge appearance:
-- Color scheme (default: slate gray)
-- Size (default: compact)
-- Position (default: between tokens and bell)
-- Icon (default: info circle)
+**v6.4 - User Testing Optimizations (Current)**
+- URL parameter support
+- Reset Demo button
+- Keyboard shortcuts
+- Modal z-index fixes
+- "Enterprise" → "Organization"
 
-### **Modal Content:**
-You can customize:
-- Number of highlights shown
-- Changelog format
-- Tab names
-- Footer text
+**v6.3 - Version History & Documentation**
+- Clickable version badge
+- Built-in changelog
 
-### **Version Format:**
-Current: `v6.3`
-Alternatives: `Version 6.3`, `6.3.0`, `v6.3-beta`
+**v6.2 - Major UX Improvements**
+- Tour side panel
+- Needs Your Attention section
+- Minimizable tour
 
 ---
 
-## 📱 Responsive Behavior
+## 📁 Files
 
-### **Desktop:**
-- Badge fully visible
-- Modal: 768px wide
-- Two-column layout possible
-
-### **Tablet:**
-- Badge slightly smaller
-- Modal: Full width with margins
-- Single column layout
-
-### **Mobile:**
-- Badge remains visible
-- Modal: Full screen
-- Scrollable content
+- `evercred-prototype-v6.4-user-testing.html` - Complete prototype
+- `USER_TESTING_GUIDE_v6.4.md` - This guide
 
 ---
 
-## 🎓 Examples in the Wild
-
-This pattern is used by:
-- **GitHub:** Version badge in footer
-- **Slack:** About Slack → Version info
-- **Figma:** Help menu → Version number
-- **VS Code:** About → Version details
-- **Discord:** Settings → App version
-
-**Industry standard for showing version information!**
-
----
-
-## ✅ Testing Checklist
-
-After deployment:
-
-**Version Badge:**
-- [ ] Visible in header
-- [ ] Shows "v6.3"
-- [ ] Has info icon
-- [ ] Hover effect works
-- [ ] Tooltip appears
-- [ ] Clickable
-
-**Version Modal:**
-- [ ] Opens on badge click
-- [ ] Shows current version (6.3)
-- [ ] Highlights are correct
-- [ ] Changelog is accurate
-- [ ] Tabs work (Current / History)
-- [ ] History shows all 4 versions
-- [ ] Close button works
-- [ ] Click outside closes modal
-
-**Content Accuracy:**
-- [ ] Version number matches everywhere
-- [ ] Dates are correct
-- [ ] Features listed are accurate
-- [ ] No typos in text
-
----
-
-## 🐛 Troubleshooting
-
-**Badge not visible:**
-- Check header rendering
-- Verify state is initialized
-- Clear browser cache
-
-**Modal won't open:**
-- Check onClick handler
-- Verify showVersionInfo state
-- Check console for errors
-
-**Wrong version shown:**
-- Update VERSION_HISTORY array
-- Update badge text in header
-- Update page title
-
-**History not displaying:**
-- Check VERSION_HISTORY structure
-- Verify map() function
-- Check for JavaScript errors
-
----
-
-## 📊 Complete Feature List (v6.3)
-
-**All features from previous versions, PLUS:**
-- ✅ Clickable version badge in header
-- ✅ Version information modal
-- ✅ Two-tab interface
-- ✅ Complete changelog
-- ✅ Version history viewer
-- ✅ Change type icons (new/improved/fixed)
-- ✅ Current version indicator
-- ✅ Professional documentation
-
-**Carried from v6.2:**
-- ✅ Tour side panel
-- ✅ "Needs Your Attention" section
-- ✅ Minimizable tour
-- ✅ Progress dots
-
-**Carried from v6.1:**
-- ✅ 572 tokens
-- ✅ Credits modal
-- ✅ Vault protection
-- ✅ Realistic token costs
-
-**Carried from v6.0:**
-- ✅ Guided tour system
-- ✅ Researcher notes
-- ✅ Welcome modal
-
----
-
-## 🎉 Summary
-
-**v6.3 adds professional version tracking:**
-
-✅ **Visible** - Badge always in header
-✅ **Accessible** - One click to open
-✅ **Comprehensive** - Full history and changelog
-✅ **Professional** - Industry-standard pattern
-✅ **Useful** - For research, stakeholders, and participants
-
-**File:** `index.html` (v6.3) - ~140KB
-
----
-
-## 📁 What to Deploy
-
-1. **index.html** (v6.3) ← Deploy this!
-   - Version badge in header
-   - Version info modal
-   - All v6.2 features
-
-2. **This documentation**
-   - Feature explanation
-   - Usage guide
-   - Customization options
-
----
-
-*v6.3 Release Notes*
-*Version History & Documentation Access*
-*Professional prototype with built-in changelog!*
+*Deploy `evercred-prototype-v6.4-user-testing.html` to Railway to update the production prototype.*
