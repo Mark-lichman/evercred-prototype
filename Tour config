@@ -1,0 +1,133 @@
+// EVERCRED TOUR CONFIGURATION
+// Edit this file to customize the tour experience without touching the main prototype
+
+const TOUR_CONFIG = {
+  // Welcome Modal Content
+  welcome: {
+    title: "Welcome to Evercred",
+    subtitle: "User Research Prototype",
+    aboutHeading: "About This Session",
+    aboutDescription: "This is an interactive prototype of Evercred's enterprise credential verification platform. You'll be reviewing a credential packet for Dr. Leah Houston that has been shared with Harbor UCLA Medical Center.",
+    roleInfo: [
+      { label: "Your role", value: "Credentialing Specialist at Harbor UCLA Medical Center" },
+      { label: "Task", value: "Review and verify physician credentials for privileging" },
+      { label: "Estimated time", value: "10-15 minutes" }
+    ],
+    thinkAloudTitle: "Please think aloud",
+    thinkAloudDescription: "Share your thoughts as you explore: What do you notice? What questions arise? What would you do next in your real workflow?",
+    buttons: {
+      startTour: "Start Guided Tour",
+      exploreFree: "Explore Freely"
+    }
+  },
+
+  // Tour Stops Configuration
+  stops: [
+    {
+      id: 'overview',
+      title: 'Overview Dashboard',
+      description: 'This is your main view showing all credentials at a glance. Notice the verification status badges and the overall completion metrics.',
+      tasks: [
+        'Scan the credential cards - what stands out to you?',
+        'Check the verification status indicators',
+        'Look at the activity feed on the right'
+      ]
+    },
+    {
+      id: 'credential-card',
+      title: 'Credential Cards',
+      description: 'Each credential shows key information, verification status, and available actions. Verified credentials show proof of verification.',
+      tasks: [
+        'Click "View Proof" on the California Medical License',
+        'Notice the verification details and AI agent notes',
+        'Check the timestamp and verification source'
+      ]
+    },
+    {
+      id: 'verify-action',
+      title: 'Token-Based Verification',
+      description: 'You can trigger AI-powered verification for unverified credentials. This uses "tokens" which represent the cost of automated verification. Simple credentials cost 3-5 tokens, complex verifications (work history, education) cost 20-80 tokens.',
+      tasks: [
+        'Click "Verify Now" on an unverified credential',
+        'Review the cost confirmation modal',
+        'Notice how tokens are deducted from your balance'
+      ]
+    },
+    {
+      id: 'tokens-panel',
+      title: 'Token Balance & Progress',
+      description: 'Click on your token balance to see verifications in progress, completed verifications, and purchase more tokens when needed.',
+      tasks: [
+        'Click the token badge in the header',
+        'Review verifications in progress with status bars',
+        'Notice the "Buy More Credits" option'
+      ]
+    },
+    {
+      id: 'activity-feed',
+      title: 'Activity Feed & Audit Trail',
+      description: 'The activity feed shows a complete audit trail of all actions taken on this credential packet. This meets Joint Commission and NCQA requirements.',
+      tasks: [
+        'Review the different types of activities',
+        'Notice the attention level indicators (red = urgent)',
+        'Look for items requiring your action'
+      ]
+    },
+    {
+      id: 'sidebar-navigation',
+      title: 'Navigation & Organization',
+      description: 'Credentials are organized by category in the sidebar. The progress indicators show verification completeness for each section.',
+      tasks: [
+        'Click through different sections (Licenses, Boards, Education)',
+        'Notice how credentials are grouped logically',
+        'Check the verification count for each section'
+      ]
+    },
+    {
+      id: 'protected-data',
+      title: 'Protected Information',
+      description: 'Sensitive information like SSN is protected using HashiCorp Vault encryption. The mask icon indicates secured fields.',
+      tasks: [
+        'Navigate to Contact & Demographics',
+        'Look for the mask icon next to SSN',
+        'Click the mask to see security details'
+      ]
+    },
+    {
+      id: 'request-credentials',
+      title: 'Requesting Additional Credentials',
+      description: 'If you need credentials that weren\'t included in the original packet, you can request them directly from the physician.',
+      tasks: [
+        'Look for the "Request Credentials" button',
+        'Click it to see what credentials you can request',
+        'Notice you can add notes about why you need them'
+      ]
+    }
+  ],
+
+  // UI Text
+  uiText: {
+    stepIndicator: "Step {current} of {total}",
+    skipTour: "Skip tour",
+    nextButton: "Next",
+    previousButton: "Previous",
+    finishButton: "Finish Tour",
+    restartTourButton: "Restart Tour",
+    tryThisHeading: "Try this:"
+  },
+
+  // Researcher Notes Panel
+  researcherPanel: {
+    title: "Researcher Notes",
+    timeLabel: "Session time:",
+    observationTips: "Observation tips: Note reactions, pain points, questions, confusion moments, unexpected behaviors, and direct quotes.",
+    placeholder: "00:00 - User first impression\n- Noticed verification badges immediately\n- Asked about token cost\n\n02:30 - Activity feed exploration\n- Appreciated the audit trail\n- \"This would save us during Joint Commission\"\n\n05:15 - Verification workflow\n- Hesitated at cost confirmation\n- Questioned AI accuracy",
+    exportButton: "Export Notes",
+    openButtonLabel: "Notes"
+  }
+};
+
+// Export for use in main prototype
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = TOUR_CONFIG;
+}
