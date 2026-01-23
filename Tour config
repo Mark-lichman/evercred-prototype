@@ -37,9 +37,9 @@ const TOUR_CONFIG = {
     {
       id: 'manage-practitioners',
       title: '2. Manage Practitioners',
-      description: 'Click the Settings icon in the left sidebar to access practitioner seat management. Here you can see all sponsored practitioners and their packet status.',
+      description: 'Click the orange tile in the left sidebar to access practitioner seat management. Here you can see all sponsored practitioners and their packet status.',
       tasks: [
-        'Click the Settings (gear) icon in the left sidebar',
+        'Click the orange tile in the left sidebar',
         'Review the Active vs Inbound tabs',
         'Notice the Seat Overview showing assigned/available seats'
       ]
