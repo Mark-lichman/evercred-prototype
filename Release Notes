@@ -81,6 +81,22 @@ Five upload states:
 
 ---
 
+## 🎯 Updated Tour Stops (9 steps)
+
+| # | Stop | Description | Key Tasks |
+|---|------|-------------|-----------|
+| 1 | **Organization Dashboard** | Home base - all credential packets | Scan packets, find empty packet |
+| 2 | **Manage Practitioners** | Settings → seat management | Click Settings, review Active/Inbound |
+| 3 | **Create Packet** | Create packet for practitioner | Find practitioner without packet, click send icon |
+| 4 | **Empty Packet View** | After packet creation | Notice Empty Packet badge, find upload button |
+| 5 | **Upload Credential** | OCR-powered upload | Select file, watch OCR, review extracted data |
+| 6 | **Open Existing Packet** | Navigate to full packet | Go to Dashboard, open Dr. Houston's packet |
+| 7 | **Credential Cards** | View and verify credentials | View Proof, try Verify Now |
+| 8 | **Token Balance** | Credits and progress | Click token badge, review progress |
+| 9 | **Activity Feed** | Audit trail and compliance | Review activities, find Request Credentials |
+
+---
+
 ## 🎯 Test Scenarios for v6.6
 
 ### Scenario 1: View Credential Packets Dashboard
@@ -173,8 +189,9 @@ All existing parameters still work:
 
 ## 📁 Files
 
-- `evercred-prototype-v6.6-org-dashboard.html` - Complete prototype (211KB, ~4,200 lines)
+- `evercred-prototype-v6.6-org-dashboard.html` - Complete prototype (~211KB, ~4,230 lines)
 - `USER_TESTING_GUIDE_v6.6.md` - This guide
+- `TOUR_CONFIG_v6.6.js` - Standalone tour configuration
 
 ---
 
@@ -186,6 +203,7 @@ All existing parameters still work:
 - Create Packet flow for sponsored practitioners
 - Empty Packet view with upload CTA
 - Credential Upload flow with OCR states
+- Updated tour with 9 stops covering new flow
 - Seat Overview and Recent Changes sidebars
 
 **v6.5 - Complete Modal Z-Index Fix**
