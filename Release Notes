@@ -1,200 +1,208 @@
-# Evercred Prototype v6.5 - User Testing Guide
+# Evercred Prototype v6.6 - User Testing Guide
 
-## Overview
-This prototype has been optimized for semi-moderated user testing sessions on Zoom calls with credentialing specialists.
+## What's New in v6.6
 
----
-
-## ✅ Implemented Changes
-
-### v6.5 - Modal Z-Index Fixes
-| Issue | Fix | Result |
-|-------|-----|--------|
-| CostConfirmationModal appeared behind CredentialDetailModal | `z-50` → `z-[70]` | Now appears on top when clicking "Verify Now" |
-| CreditsPanel could appear behind other modals | `z-50` → `z-[80]` | Always appears on top when clicking tokens |
-
-### Complete Z-Index Hierarchy
-```
-z-40:     Header (sticky)
-z-50:     Base modals (CredentialDetailModal, RequestCredentialsModal, RequestMissingInfoModal)
-z-[60]:   Nested modals (VerificationProofModal, DocumentPreviewModal)
-z-[70]:   CostConfirmationModal
-z-[80]:   CreditsPanel
-z-[1002]: Tour panel
-z-[2000]: TourWelcomeModal
-z-[2001]: VersionInfoModal
-```
-
-### High Priority (from v6.4)
-| Change | Status | Details |
-|--------|--------|---------|
-| Replace "Enterprise" → "Organization" | ✅ Done | Changed in breadcrumb and welcome modal |
-| Fix modal z-index layering | ✅ Done | Complete progressive z-index hierarchy |
-| Make tour panel collapsible | ✅ Done | Minimize to icon, close completely, keyboard shortcuts |
-
-### Medium Priority (from v6.4)
-| Change | Status | Details |
-|--------|--------|---------|
-| URL parameters for test modes | ✅ Done | `?skipWelcome`, `?hideTokens`, `?minimal` |
-| Progressive z-index for nested modals | ✅ Done | All nested modals stack properly |
-
-### Low Priority (from v6.4)
-| Change | Status | Details |
-|--------|--------|---------|
-| Remove researcher notes panel | ✅ Done | Removed (not needed for recorded sessions) |
-| Add reset demo function | ✅ Done | Button + keyboard shortcut |
+**Organization Dashboard & Seat Management** - A major expansion adding org-level views for managing credential packets and practitioners.
 
 ---
 
-## 🔗 URL Parameters for Testing
+## ✅ New Features
 
-Use these URL parameters to customize the prototype for different testing scenarios:
+### Organization Dashboard
+The first screen orgs see when logging in:
+- **Credential Packets List**: View all shared packets at a glance
+- **Search & Filter**: Find specific practitioners
+- **Status Badges**: Opened, Received, Pending
+- **Empty Packet Indicator**: Shows "Empty packet" for packets with no credentials
+
+### Manage Practitioners (Account Settings)
+Seat management and practitioner administration:
+- **Active/Inbound Tabs**: Filter practitioners by status
+- **Seat Overview Sidebar**: Assigned, Available, Purchased seats
+- **Recent Changes Feed**: Activity log of recent actions
+- **Create Packet Action**: One-click packet creation for sponsored practitioners
+- **Open Packet Action**: Navigate to existing packets
+
+### Create Packet Flow
+Org-initiated packet creation:
+- **Create Packet Modal**: Confirmation with benefits summary
+- **Empty Packet View**: Clean empty state with upload CTA
+- **Upload Credential Modal**: Full upload flow with OCR states
+
+### Credential Upload (Org-Initiated)
+Five upload states:
+1. **File Selection**: Drag-drop or browse
+2. **Uploading**: Progress bar
+3. **Processing**: OCR extraction with spinner
+4. **Success**: Extracted fields preview
+5. **Failed**: Manual entry fallback
+
+---
+
+## 🗺️ Navigation Flow
 
 ```
-Base URL: https://evercred-prototype-production.up.railway.app/
-```
-
-### Available Parameters
-
-| Parameter | Effect | Example |
-|-----------|--------|---------|
-| `?skipWelcome=true` | Skip the welcome modal | Direct to prototype |
-| `?hideTokens=true` | Hide token display | Removes token count from header |
-| `?minimal=true` | Minimal UI mode | Skip welcome + collapsed tour |
-
-### Recommended URLs for Testing
-
-**Standard user test (guided):**
-```
-https://evercred-prototype-production.up.railway.app/
-```
-
-**Quick demo (skip intro):**
-```
-https://evercred-prototype-production.up.railway.app/?skipWelcome=true
-```
-
-**Minimal mode (experienced users):**
-```
-https://evercred-prototype-production.up.railway.app/?minimal=true
-```
-
-**Hide pricing (focus on workflow):**
-```
-https://evercred-prototype-production.up.railway.app/?hideTokens=true
-```
-
-**Combined options:**
-```
-https://evercred-prototype-production.up.railway.app/?skipWelcome=true&hideTokens=true
+┌─────────────────────────────────────────────────────────────┐
+│  ORG SIDEBAR                                                 │
+│  ├── Dashboard (credential packets list)                    │
+│  └── Settings (manage practitioners)                         │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  DASHBOARD VIEW                                              │
+│  - See all credential packets                                │
+│  - Click "Open Packet" → Packet Detail or Empty Packet       │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  SETTINGS → MANAGE PRACTITIONERS                             │
+│  - View sponsored practitioners                              │
+│  - Click send icon → Create Packet Modal                     │
+│  - Click external link icon → Open existing Packet           │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  EMPTY PACKET VIEW                                           │
+│  - Shows practitioner info                                   │
+│  - "Upload Credential" CTA                                   │
+│  - Click → Upload Credential Modal                           │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PACKET DETAIL VIEW (existing)                               │
+│  - Full credential list with verification                    │
+│  - All existing features (verification, proof, etc.)         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⌨️ Keyboard Shortcuts for Moderators
+## 🎯 Test Scenarios for v6.6
+
+### Scenario 1: View Credential Packets Dashboard
+1. Land on Organization Dashboard
+2. Review the packets list
+3. Notice status badges (Opened, Received, Pending)
+4. Find the empty packet (Dr. Michael Chen)
+
+### Scenario 2: Create a Packet for a Practitioner
+1. Click Settings icon in sidebar
+2. Go to "Manage Practitioners" tab
+3. Find a practitioner without a packet (Emily Williams or Robert Martinez)
+4. Click the send icon (📤) to create packet
+5. Confirm in the modal
+6. Land on Empty Packet view
+
+### Scenario 3: Upload a Credential
+1. From Empty Packet view, click "Upload Credential"
+2. Drop or select a file
+3. Watch OCR processing
+4. Review extracted data
+5. Click "Done"
+
+### Scenario 4: Open an Existing Packet
+1. From Dashboard, click "Open Packet" on Dr. Leah Houston
+2. Review the full packet detail view (existing functionality)
+3. Verify credentials, view proof, etc.
+
+---
+
+## 🔗 URL Parameters
+
+All existing parameters still work:
+
+| Parameter | Effect |
+|-----------|--------|
+| `?skipWelcome=true` | Skip welcome modal |
+| `?hideTokens=true` | Hide token display |
+| `?minimal=true` | Skip welcome + collapsed tour |
+
+---
+
+## ⌨️ Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `T` | Toggle tour panel (show/hide) |
-| `Esc` | Minimize tour panel |
-| `Ctrl+Shift+R` | Reset demo (reload page) |
+| `T` | Toggle tour panel |
+| `Esc` | Minimize tour |
+| `Ctrl+Shift+R` | Reset demo |
 
 ---
 
-## 🎯 UI Controls
+## 📊 Mock Data
 
-### Tour Panel (Left Side)
-- **Width:** 320px (narrower than before)
-- **Position:** Left side of screen
-- **Minimize:** Click `-` button or press `T` / `Esc`
-- **Close:** Click `×` button (hides until restart)
-- **Expand:** Click the collapsed tab or press `T`
+### Credential Packets (4)
+| Practitioner | Credentials | Status | Packet Status |
+|--------------|-------------|--------|---------------|
+| Dr. Leah Houston | 3 | Opened | PROCESSING |
+| Dr. Sarah Johnson | 2 | Received | PROCESSING |
+| Dr. John Smith | 5 | Received | COMPLETE |
+| Dr. Michael Chen | 0 (Empty) | Pending | PENDING |
 
-### Control Buttons (Bottom Right)
-- **Tour Button:** Appears when tour is closed, click to restart
-- **Reset Button:** Always visible, reloads the demo
+### Sponsored Practitioners (4)
+| Name | Account Type | Access | Has Packet |
+|------|--------------|--------|------------|
+| Sarah Johnson, MD | Organization | Permanent | Yes |
+| Michael Chen, MD | Practitioner | 30 days | Yes (Empty) |
+| Emily Williams, MD | Practitioner | Expired | No |
+| Robert Martinez, DO | Practitioner | 60 days | No |
 
----
-
-## 📋 Modal Stacking Order (v6.5)
-
-All modals now stack properly with progressive z-indexes:
-
-| Layer | Z-Index | Modals | Opens From |
-|-------|---------|--------|------------|
-| Base | `z-50` | Credential Detail, Request Credentials, Request Missing Info | Main UI |
-| Nested | `z-[60]` | View Proof, Document Preview | Credential Detail modal |
-| Cost | `z-[70]` | Cost Confirmation | Credential Detail modal |
-| System | `z-[80]` | Credits Panel | Header |
-| Tour | `z-[1002]` | Tour panel | System |
-| Welcome | `z-[2000]` | Welcome modal | System |
-| Version | `z-[2001]` | Version information | System |
-
-**Result:** The most recently opened modal always appears in the foreground.
+### Seat Overview
+- Assigned: 2
+- Available: 1  
+- Purchased: 3
 
 ---
 
-## 🎬 Pre-Session Checklist
+## 🎬 User Testing Script Suggestions
 
-Before each user test session:
+### For Testing Create Packet Flow:
+> "Imagine you've just hired a new physician, Dr. Emily Williams, and need to start collecting her credentials. How would you begin that process?"
 
-1. **Test URL:** Verify the prototype loads correctly
-2. **Clear browser cache:** Ensure fresh state
-3. **Choose URL variant:** Select appropriate parameters for participant
-4. **Test Reset:** Verify `Ctrl+Shift+R` works
-5. **Check recording:** Confirm Zoom is recording
-6. **Review tour stops:** Know the 6 tour stops for guidance
-7. **Test modal stacking:** Verify View Proof appears above Credential Detail
+### For Testing Dashboard:
+> "You just logged in for the day. Walk me through what you see and what tasks you might need to do."
 
----
-
-## 📝 During the Session
-
-### If participant gets stuck:
-- Use `T` to show/hide tour panel
-- Use keyboard shortcuts to navigate quickly
-- Reset with `Ctrl+Shift+R` if needed
-
-### Key areas to observe:
-1. Initial reaction to dashboard
-2. Understanding of verification status badges
-3. Interaction with credential cards
-4. Response to "Needs Your Attention" alerts
-5. Token/cost perception (if visible)
-6. Activity feed comprehension
-
----
-
-## 🔄 Version History
-
-**v6.5 - Complete Modal Z-Index Fix (Current)**
-- CostConfirmationModal z-index: z-50 → z-[70]
-- CreditsPanel z-index: z-50 → z-[80]
-- Complete progressive z-index hierarchy
-
-**v6.4 - User Testing Optimizations**
-- URL parameter support
-- Reset Demo button
-- Keyboard shortcuts
-- Initial modal z-index improvements
-- "Enterprise" → "Organization"
-
-**v6.3 - Version History & Documentation**
-- Clickable version badge
-- Built-in changelog
-
-**v6.2 - Major UX Improvements**
-- Tour side panel
-- Needs Your Attention section
-- Minimizable tour
+### For Testing Upload Flow:
+> "You've received a copy of a physician's medical license. How would you add it to their credential file?"
 
 ---
 
 ## 📁 Files
 
-- `evercred-prototype-v6.5-user-testing.html` - Complete prototype
-- `USER_TESTING_GUIDE_v6.5.md` - This guide
+- `evercred-prototype-v6.6-org-dashboard.html` - Complete prototype (211KB, ~4,200 lines)
+- `USER_TESTING_GUIDE_v6.6.md` - This guide
 
 ---
 
-*Deploy `evercred-prototype-v6.5-user-testing.html` to Railway to update the production prototype.*
+## 🔄 Version History
+
+**v6.6 - Organization Dashboard & Seat Management (Current)**
+- Organization Dashboard with credential packets list
+- Manage Practitioners screen with Active/Inbound tabs
+- Create Packet flow for sponsored practitioners
+- Empty Packet view with upload CTA
+- Credential Upload flow with OCR states
+- Seat Overview and Recent Changes sidebars
+
+**v6.5 - Complete Modal Z-Index Fix**
+- Fixed all modal stacking issues
+
+**v6.4 - User Testing Optimizations**
+- URL parameters, keyboard shortcuts, reset demo
+
+---
+
+## ⚠️ Known Limitations (Prototype)
+
+- Upload doesn't actually store files (simulated)
+- OCR extraction is simulated with mock data
+- Creating a packet doesn't persist on page reload
+- Packet detail always shows Dr. Leah Houston's credentials (regardless of which packet is opened)
+
+---
+
+*Deploy `evercred-prototype-v6.6-org-dashboard.html` to Railway to update the production prototype.*
