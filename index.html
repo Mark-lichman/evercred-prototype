@@ -209,32 +209,47 @@
     // ORG SIDEBAR COMPONENT
     // ============================================
     const OrgSidebar = ({ currentView, onNavigate }) => {
-      const navItems = [
-        { id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
-        { id: 'settings', icon: 'settings', label: 'Settings' }
-      ];
+      // Determine which nav item should be active
+      const getActiveState = (itemId) => {
+        if (itemId === 'dashboard') {
+          return currentView === 'dashboard' || currentView === 'packet-detail' || currentView === 'empty-packet';
+        }
+        return currentView === itemId;
+      };
       
       return (
-        <div className="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-2">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                currentView === item.id || (currentView === 'packet-detail' && item.id === 'dashboard')
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-              }`}
-              title={item.label}
-            >
-              <span className="w-5 h-5"><Icon name={item.icon} /></span>
-            </button>
-          ))}
+        <div className="w-16 bg-slate-100 border-r border-slate-300 flex flex-col items-center py-4 gap-3">
+          {/* Dashboard - Blue tile */}
+          <button
+            onClick={() => onNavigate('dashboard')}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+              getActiveState('dashboard')
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border border-indigo-300'
+            }`}
+            title="Dashboard"
+          >
+            <span className="w-5 h-5"><Icon name="layout-dashboard" /></span>
+          </button>
+          
+          {/* Settings - Orange tile (distinct from blue) */}
+          <button
+            onClick={() => onNavigate('settings')}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+              getActiveState('settings')
+                ? 'bg-orange-500 text-white shadow-md'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200 border border-orange-300'
+            }`}
+            title="Account Settings"
+          >
+            <span className="w-5 h-5"><Icon name="users" /></span>
+          </button>
+          
           <div className="flex-1" />
-          <button className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors" title="Notifications">
+          <button className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-300 transition-colors" title="Notifications">
             <span className="w-5 h-5"><Icon name="bell" /></span>
           </button>
-          <button className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors" title="Log out">
+          <button className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-300 transition-colors" title="Log out">
             <span className="w-5 h-5"><Icon name="log-out" /></span>
           </button>
         </div>
@@ -436,23 +451,32 @@
       
       const getPacketAction = (practitioner) => {
         if (practitioner.hasPacket) {
+          // Has packet - show "Open" with different styling based on empty vs active
+          const isEmptyPacket = practitioner.packetStatus === 'PENDING';
           return (
             <button 
               onClick={() => onOpenPacket(practitioner)}
-              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-              title="Open Packet"
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                isEmptyPacket 
+                  ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+              }`}
+              title={isEmptyPacket ? "Open Empty Packet" : "Open Packet"}
             >
-              <span className="w-4 h-4"><Icon name="external-link" /></span>
+              <span className="w-3.5 h-3.5"><Icon name={isEmptyPacket ? "folder-open" : "external-link"} /></span>
+              {isEmptyPacket ? 'Open Empty' : 'Open'}
             </button>
           );
         }
+        // No packet - show "Create Packet" button
         return (
           <button 
             onClick={() => onCreatePacket(practitioner)}
-            className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-medium transition-colors"
             title="Create Packet"
           >
-            <span className="w-4 h-4"><Icon name="send" /></span>
+            <span className="w-3.5 h-3.5"><Icon name="folder-plus" /></span>
+            Create
           </button>
         );
       };
@@ -600,16 +624,20 @@
                         <td className="px-4 py-4 text-sm text-slate-600">{practitioner.lastLogin}</td>
                         <td className="px-4 py-4">
                           {practitioner.hasPacket ? (
-                            <span className="flex items-center gap-1 text-xs text-emerald-600">
-                              <span className="w-3 h-3"><Icon name="check-circle" /></span>
+                            <span className={`inline-flex items-center gap-1 text-xs font-medium ${
+                              practitioner.packetStatus === 'PENDING' 
+                                ? 'text-amber-600' 
+                                : 'text-emerald-600'
+                            }`}>
+                              <span className="w-3 h-3"><Icon name={practitioner.packetStatus === 'PENDING' ? 'folder-open' : 'check-circle'} /></span>
                               {practitioner.packetStatus === 'PENDING' ? 'Empty' : 'Active'}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">No packet</span>
+                            <span className="text-xs text-slate-400 italic">None</span>
                           )}
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-2">
                             {getPacketAction(practitioner)}
                             <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors">
                               <span className="w-4 h-4"><Icon name="more-vertical" /></span>
@@ -1052,83 +1080,93 @@
     
     const TOUR_STOPS = [
       {
-        id: 'overview',
-        title: 'Overview Dashboard',
-        description: 'This is your main view showing all credentials at a glance. Notice the verification status badges and the overall completion metrics.',
+        id: 'org-dashboard',
+        title: '1. Organization Dashboard',
+        description: 'This is your home base - the first screen you see when logging in. It shows all credential packets that have been shared with your organization.',
         tasks: [
-          'Scan the credential cards - what stands out to you?',
-          'Check the verification status indicators',
-          'Look at the activity feed on the right'
+          'Scan the packets list - notice the different statuses',
+          'Find the "Empty packet" (Dr. Michael Chen)',
+          'Notice the credential count varies by packet'
+        ]
+      },
+      {
+        id: 'manage-practitioners',
+        title: '2. Manage Practitioners',
+        description: 'Click the orange tile in the left sidebar to access practitioner seat management. Here you can see all sponsored practitioners and their packet status.',
+        tasks: [
+          'Click the orange tile in the left sidebar',
+          'Review the Active vs Inbound tabs',
+          'Notice the Seat Overview showing assigned/available seats'
+        ]
+      },
+      {
+        id: 'create-packet',
+        title: '3. Create Packet for Practitioner',
+        description: 'For practitioners without packets, you can create one on their behalf. Look for the send icon (📤) in the Packet column.',
+        tasks: [
+          'Find a practitioner without a packet (Emily Williams or Robert Martinez)',
+          'Click the send icon to create a packet',
+          'Review the confirmation modal and click "Create Packet"'
+        ]
+      },
+      {
+        id: 'empty-packet',
+        title: '4. Empty Packet View',
+        description: 'After creating a packet, you land on the empty packet view. This is where you\'ll upload credentials on behalf of the practitioner.',
+        tasks: [
+          'Notice the "Empty Packet" badge',
+          'Find the "Upload Credential" button',
+          'Click it to start adding credentials'
+        ]
+      },
+      {
+        id: 'upload-credential',
+        title: '5. Upload Credential with OCR',
+        description: 'Upload credential documents and watch OCR automatically extract the data. The system supports PDF, PNG, and JPG files up to 25MB.',
+        tasks: [
+          'Select or drag a file (this is simulated)',
+          'Watch the upload progress and OCR processing',
+          'Review the extracted fields before saving'
+        ]
+      },
+      {
+        id: 'open-packet',
+        title: '6. Open Existing Packet',
+        description: 'From the dashboard, click "Open Packet" on any practitioner to view their full credential packet with verification details.',
+        tasks: [
+          'Go back to Dashboard (click Dashboard in sidebar)',
+          'Click "Open Packet" on Dr. Leah Houston',
+          'Explore the packet detail view'
         ]
       },
       {
         id: 'credential-card',
-        title: 'Credential Cards',
+        title: '7. Credential Cards & Verification',
         description: 'Each credential shows key information, verification status, and available actions. Verified credentials show proof of verification.',
         tasks: [
           'Click "View Proof" on the California Medical License',
           'Notice the verification details and AI agent notes',
-          'Check the timestamp and verification source'
-        ]
-      },
-      {
-        id: 'verify-action',
-        title: 'Token-Based Verification',
-        description: 'You can trigger AI-powered verification for unverified credentials. This uses "tokens" which represent the cost of automated verification. Simple credentials (licenses, certifications) cost 3-5 tokens, while complex verifications (work history, education) cost 20-80 tokens.',
-        tasks: [
-          'Click "Verify Now" on an unverified credential',
-          'Review the cost confirmation modal',
-          'Notice the token cost varies by credential complexity'
+          'Try "Verify Now" on an unverified credential'
         ]
       },
       {
         id: 'tokens-panel',
-        title: 'Token Balance & Progress',
-        description: 'Click on your token balance in the header to see verifications in progress, completed verifications, and purchase more tokens when needed.',
+        title: '8. Token Balance & Progress',
+        description: 'Click on your token balance in the header to see verifications in progress and completed verifications.',
         tasks: [
           'Click the token badge in the header',
-          'Review verifications in progress with status bars',
+          'Review verifications in progress',
           'Notice the "Buy More Credits" option'
         ]
       },
       {
         id: 'activity-feed',
-        title: 'Activity Feed & Audit Trail',
-        description: 'The activity feed shows a complete audit trail of all actions taken on this credential packet. This meets Joint Commission and NCQA requirements.',
+        title: '9. Activity Feed & Audit Trail',
+        description: 'The activity feed shows a complete audit trail of all actions. This meets Joint Commission and NCQA compliance requirements.',
         tasks: [
           'Review the different types of activities',
-          'Notice the attention level indicators (red = urgent)',
-          'Look for items requiring your action'
-        ]
-      },
-      {
-        id: 'sidebar-navigation',
-        title: 'Navigation & Organization',
-        description: 'Credentials are organized by category in the sidebar. The progress indicators show verification completeness for each section.',
-        tasks: [
-          'Click through different sections (Licenses, Boards, Education)',
-          'Notice how credentials are grouped logically',
-          'Check the verification count for each section'
-        ]
-      },
-      {
-        id: 'protected-data',
-        title: 'Protected Information',
-        description: 'Sensitive information like SSN is protected using HashiCorp Vault encryption. The mask icon indicates secured fields.',
-        tasks: [
-          'Navigate to Contact & Demographics',
-          'Look for the "Vault" badge next to SSN',
-          'Notice how sensitive data is masked for security'
-        ]
-      },
-      {
-        id: 'request-credentials',
-        title: 'Requesting Additional Credentials',
-        description: 'If you need credentials that weren\'t included in the original packet, you can request them directly from the physician.',
-        tasks: [
-          'Look for the "Request Credentials" button',
-          'Click it to see what credentials you can request',
-          'Notice you can add notes about why you need them'
+          'Notice items requiring your attention',
+          'Look for the "Request Credentials" option'
         ]
       }
     ];
@@ -1441,7 +1479,7 @@
     // =====================================================
     // NEEDS YOUR ATTENTION SECTION
     // =====================================================
-    const NeedsYourAttention = ({ urgentItems, onActionClick }) => {
+    const NeedsYourAttention = ({ urgentItems, onActionClick, onVerifyClick, credentials }) => {
       if (!urgentItems || urgentItems.length === 0) {
         return (
           <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 mb-6">
@@ -1478,6 +1516,18 @@
             };
         }
       };
+      
+      const handleAction = (item) => {
+        if (item.actionType === 'verify' && item.credentialId && onVerifyClick && credentials) {
+          const credential = credentials.find(c => c.id === item.credentialId);
+          if (credential) {
+            onVerifyClick(credential);
+            return;
+          }
+        }
+        // Default to onActionClick for other action types
+        onActionClick && onActionClick(item);
+      };
 
       return (
         <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl overflow-hidden mb-6">
@@ -1491,6 +1541,7 @@
           <div className="divide-y divide-orange-100">
             {urgentItems.slice(0, 5).map((item, idx) => {
               const styles = getUrgencyStyles(item.attentionLevel);
+              const isVerifyAction = item.actionType === 'verify';
               
               return (
                 <div key={item.id || idx} className="p-4 hover:bg-orange-100/50 transition-colors">
@@ -1517,11 +1568,16 @@
                     
                     {item.actionButton && (
                       <button
-                        onClick={() => onActionClick && onActionClick(item)}
-                        className="flex items-center gap-1 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
+                        onClick={() => handleAction(item)}
+                        className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors flex-shrink-0 ${
+                          isVerifyAction 
+                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600'
+                            : 'bg-slate-900 text-white hover:bg-slate-800'
+                        }`}
                       >
+                        {isVerifyAction && <span className="w-4 h-4"><Icon name="shield" /></span>}
                         {item.actionButton}
-                        <span className="w-4 h-4"><Icon name="arrow-right" /></span>
+                        {!isVerifyAction && <span className="w-4 h-4"><Icon name="arrow-right" /></span>}
                       </button>
                     )}
                   </div>
@@ -2281,6 +2337,11 @@
         'Employment History': 'briefcase'
       };
       
+      // For Medical Licenses, show state as main header
+      const isMedicalLicense = credential.type === 'Medical License';
+      const mainTitle = isMedicalLicense ? credential.state : credential.type;
+      const subtitle = isMedicalLicense ? 'Medical License' : credential.state;
+      
       // Get documents including verification proof if verified
       const getDocuments = () => {
         const docs = [...(credential.documents || [])];
@@ -2302,10 +2363,10 @@
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xl font-semibold text-slate-900">{credential.type}</h3>
+                      <h3 className="text-xl font-semibold text-slate-900">{mainTitle}</h3>
                       <StatusBadge status={credential.status} />
                     </div>
-                    <p className="text-slate-500">{credential.state}</p>
+                    <p className="text-slate-500">{subtitle}</p>
                     <p className="text-sm text-slate-400 mt-1">Number: {credential.number}</p>
                   </div>
                 </div>
@@ -2874,7 +2935,8 @@
         fax: 'printer',
         error: 'alert-triangle',
         manual: 'user-check',
-        api: 'zap'
+        api: 'zap',
+        agent: 'bot'
       };
       const hasChildren = event.children && event.children.length > 0;
       
@@ -2896,6 +2958,20 @@
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-1">{event.timestamp}</p>
+              {/* Show URL visited by agent */}
+              {event.url && (
+                <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                  <span className="w-3 h-3"><Icon name="external-link" /></span>
+                  {event.url}
+                </p>
+              )}
+              {/* Show verification source */}
+              {event.source && (
+                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                  <span className="w-3 h-3"><Icon name="building-2" /></span>
+                  Source: {event.source}
+                </p>
+              )}
               {event.details && <p className="text-xs text-slate-500 mt-1 bg-white p-1.5 rounded">{event.details}</p>}
               {showProofLink && (
                 <button onClick={(e) => { e.stopPropagation(); onViewProof(); }} className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
@@ -2918,6 +2994,8 @@
                       <p className="text-xs text-slate-700">{child.description}</p>
                     </div>
                     <p className="text-xs text-slate-400 mt-0.5">{child.timestamp}</p>
+                    {child.url && <p className="text-xs text-blue-500 mt-0.5">{child.url}</p>}
+                    {child.source && <p className="text-xs text-emerald-500 mt-0.5">Source: {child.source}</p>}
                   </div>
                 </div>
               ))}
@@ -3138,6 +3216,11 @@
         'Employment History': 'briefcase'
       };
       
+      // For Medical Licenses, show state as main header
+      const isMedicalLicense = credential.type === 'Medical License';
+      const mainTitle = isMedicalLicense ? credential.state : credential.type;
+      const subtitle = isMedicalLicense ? 'Medical License' : credential.state;
+      
       return (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-lg transition-shadow">
           <div className="flex items-start justify-between">
@@ -3147,10 +3230,10 @@
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-semibold text-slate-900">{credential.type}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900">{mainTitle}</h3>
                   <StatusBadge status={credential.status} />
                 </div>
-                <p className="text-slate-500">{credential.state}</p>
+                <p className="text-slate-500">{subtitle}</p>
                 <p className="text-sm text-slate-400 mt-1">Number: {credential.number}</p>
                 {credential.activityFeed && credential.activityFeed.length > 0 && (
                   <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
@@ -3484,7 +3567,7 @@
           </div>
           
           {/* Needs Your Attention Section */}
-          <NeedsYourAttention urgentItems={urgentItems} onActionClick={onRequestCredentials} />
+          <NeedsYourAttention urgentItems={urgentItems} onActionClick={onRequestCredentials} onVerifyClick={onVerify} credentials={credentials} />
           
           {/* Packet Activity Feed */}
           <div className="mb-6">
@@ -3605,7 +3688,8 @@
           subtitle: 'Emergency Medicine certification (ABEM #53460)',
           attentionLevel: 'critical',
           dueDisplay: 'Expired Dec 21, 2023',
-          actionButton: 'Upload Renewal'
+          actionButton: 'Upload Renewal',
+          actionType: 'upload'
         },
         {
           id: 'urgent-2',
@@ -3613,7 +3697,9 @@
           subtitle: 'Primary source verification needed (3 tokens)',
           attentionLevel: 'high',
           dueDisplay: 'Required for privileging',
-          actionButton: 'Verify Now'
+          actionButton: 'Verify Now',
+          actionType: 'verify',
+          credentialId: 3 // DEA Registration credential ID
         },
         {
           id: 'urgent-3',
@@ -3621,7 +3707,8 @@
           subtitle: 'Required for NCQA compliance',
           attentionLevel: 'high',
           dueDisplay: 'Needed for packet completion',
-          actionButton: 'Request Info'
+          actionButton: 'Request Info',
+          actionType: 'request'
         }
       ];
       
@@ -3702,13 +3789,17 @@
           physicianName: 'Dr. Leah Houston',
           expiryDate: '08-31-2026',
           verificationPortal: 'NY State Education Department',
+          verificationUrl: 'https://www.op.nysed.gov/verification-search',
           taskId: 'task_ny_20260114_1448',
           verificationTime: '2 min 37 sec',
           nameOnRecord: 'HOUSTON LEAH CHRISTINE',
           verificationProof: { name: 'verification-proof.png', isProof: true },
           activityFeed: [
-            { type: 'complete', description: 'Verification completed successfully', timestamp: 'Jan 14, 2026 2:48 PM', color: 'Green' },
-            { type: 'navigation', description: 'AI Agent: Captured verification screenshot', timestamp: 'Jan 14, 2026 2:47 PM', color: 'Blue' },
+            { type: 'complete', description: 'Verification completed successfully', timestamp: 'Jan 14, 2026 2:48 PM', color: 'Green', source: 'NY State Education Department' },
+            { type: 'agent', description: 'AI Agent captured license status screenshot', timestamp: 'Jan 14, 2026 2:47 PM', color: 'Blue', url: 'op.nysed.gov/verification-search' },
+            { type: 'agent', description: 'AI Agent confirmed license #286543 is ACTIVE', timestamp: 'Jan 14, 2026 2:47 PM', color: 'Blue', source: 'NY State Education Department' },
+            { type: 'agent', description: 'AI Agent navigated to license verification page', timestamp: 'Jan 14, 2026 2:46 PM', color: 'Blue', url: 'op.nysed.gov/verification-search' },
+            { type: 'agent', description: 'AI Agent initiated verification task', timestamp: 'Jan 14, 2026 2:45 PM', color: 'Blue' },
             { type: 'upload', description: 'Medical license document uploaded', timestamp: 'Jan 10, 2026 10:15 AM', color: 'Green' },
           ],
           documents: [{ name: 'medical-license-ny.pdf', pages: 1 }]
@@ -3726,12 +3817,17 @@
           physicianName: 'Dr. Leah Houston',
           expiryDate: 'Permanent',
           verificationPortal: 'Medical Board of California',
+          verificationUrl: 'https://mbc.ca.gov/breeze/license-verification',
           taskId: 'task_ca_20260114_1430',
           verificationTime: '1 min 52 sec',
           nameOnRecord: 'HOUSTON, LEAH CHRISTINE MD',
           verificationProof: { name: 'verification-proof.png', isProof: true },
           activityFeed: [
-            { type: 'complete', description: 'Verification completed successfully', timestamp: 'Jan 14, 2026 2:32 PM', color: 'Green' },
+            { type: 'complete', description: 'Verification completed successfully', timestamp: 'Jan 14, 2026 2:32 PM', color: 'Green', source: 'Medical Board of California' },
+            { type: 'agent', description: 'AI Agent captured verification screenshot', timestamp: 'Jan 14, 2026 2:31 PM', color: 'Blue', url: 'mbc.ca.gov/breeze' },
+            { type: 'agent', description: 'AI Agent confirmed license #136896 is ACTIVE (Permanent)', timestamp: 'Jan 14, 2026 2:31 PM', color: 'Blue', source: 'Medical Board of California' },
+            { type: 'agent', description: 'AI Agent searched physician by name and NPI', timestamp: 'Jan 14, 2026 2:30 PM', color: 'Blue', url: 'mbc.ca.gov/breeze/license-verification' },
+            { type: 'agent', description: 'AI Agent initiated verification task', timestamp: 'Jan 14, 2026 2:30 PM', color: 'Blue' },
             { type: 'upload', description: 'California medical license uploaded', timestamp: 'Jan 14, 2026 2:30 PM', color: 'Green' },
           ],
           documents: [{ name: 'medical-license-ca.pdf', pages: 1 }]
@@ -4069,8 +4165,15 @@
               ===================================================== */}
           {orgView === 'packet-detail' && (
             <>
-              <div className="bg-white border-b border-slate-200 px-6 py-4">
+              <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
                 <h1 className="text-xl font-semibold text-slate-900">Credential Packet: <span className="font-bold">{selectedPacket?.practitionerName || 'Dr. Leah Houston'}</span></h1>
+                <button 
+                  onClick={() => setShowUploadModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  <span className="w-4 h-4"><Icon name="upload" /></span>
+                  Upload Credential
+                </button>
               </div>
               
               <div className="flex h-[calc(100vh-121px)]">
