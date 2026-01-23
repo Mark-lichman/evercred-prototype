@@ -1,4 +1,4 @@
-# Evercred Prototype v6.4 - User Testing Guide
+# Evercred Prototype v6.5 - User Testing Guide
 
 ## Overview
 This prototype has been optimized for semi-moderated user testing sessions on Zoom calls with credentialing specialists.
@@ -7,20 +7,38 @@ This prototype has been optimized for semi-moderated user testing sessions on Zo
 
 ## ✅ Implemented Changes
 
-### High Priority
+### v6.5 - Modal Z-Index Fixes
+| Issue | Fix | Result |
+|-------|-----|--------|
+| CostConfirmationModal appeared behind CredentialDetailModal | `z-50` → `z-[70]` | Now appears on top when clicking "Verify Now" |
+| CreditsPanel could appear behind other modals | `z-50` → `z-[80]` | Always appears on top when clicking tokens |
+
+### Complete Z-Index Hierarchy
+```
+z-40:     Header (sticky)
+z-50:     Base modals (CredentialDetailModal, RequestCredentialsModal, RequestMissingInfoModal)
+z-[60]:   Nested modals (VerificationProofModal, DocumentPreviewModal)
+z-[70]:   CostConfirmationModal
+z-[80]:   CreditsPanel
+z-[1002]: Tour panel
+z-[2000]: TourWelcomeModal
+z-[2001]: VersionInfoModal
+```
+
+### High Priority (from v6.4)
 | Change | Status | Details |
 |--------|--------|---------|
 | Replace "Enterprise" → "Organization" | ✅ Done | Changed in breadcrumb and welcome modal |
-| Fix modal z-index layering | ✅ Done | Base modals: `z-50`, nested modals: `z-[60]` |
+| Fix modal z-index layering | ✅ Done | Complete progressive z-index hierarchy |
 | Make tour panel collapsible | ✅ Done | Minimize to icon, close completely, keyboard shortcuts |
 
-### Medium Priority
+### Medium Priority (from v6.4)
 | Change | Status | Details |
 |--------|--------|---------|
 | URL parameters for test modes | ✅ Done | `?skipWelcome`, `?hideTokens`, `?minimal` |
-| Progressive z-index for nested modals | ✅ Done | View Proof from Credential Detail now stacks properly |
+| Progressive z-index for nested modals | ✅ Done | All nested modals stack properly |
 
-### Low Priority
+### Low Priority (from v6.4)
 | Change | Status | Details |
 |--------|--------|---------|
 | Remove researcher notes panel | ✅ Done | Removed (not needed for recorded sessions) |
@@ -98,19 +116,21 @@ https://evercred-prototype-production.up.railway.app/?skipWelcome=true&hideToken
 
 ---
 
-## 📋 Modal Stacking Order
+## 📋 Modal Stacking Order (v6.5)
 
-Modals now stack properly with progressive z-indexes:
+All modals now stack properly with progressive z-indexes:
 
-| Layer | Z-Index | Modals |
-|-------|---------|--------|
-| Base | `z-50` | Credential Detail, Request Credentials, Cost Confirmation |
-| Nested | `z-[60]` | View Proof, Document Preview |
-| Tour | `z-[1002]` | Tour panel |
-| Welcome | `z-[2000]` | Welcome modal |
-| Version Info | `z-[2001]` | Version information modal |
+| Layer | Z-Index | Modals | Opens From |
+|-------|---------|--------|------------|
+| Base | `z-50` | Credential Detail, Request Credentials, Request Missing Info | Main UI |
+| Nested | `z-[60]` | View Proof, Document Preview | Credential Detail modal |
+| Cost | `z-[70]` | Cost Confirmation | Credential Detail modal |
+| System | `z-[80]` | Credits Panel | Header |
+| Tour | `z-[1002]` | Tour panel | System |
+| Welcome | `z-[2000]` | Welcome modal | System |
+| Version | `z-[2001]` | Version information | System |
 
-**Result:** Clicking "View Proof" from within Credential Detail now displays correctly on top.
+**Result:** The most recently opened modal always appears in the foreground.
 
 ---
 
@@ -124,6 +144,7 @@ Before each user test session:
 4. **Test Reset:** Verify `Ctrl+Shift+R` works
 5. **Check recording:** Confirm Zoom is recording
 6. **Review tour stops:** Know the 6 tour stops for guidance
+7. **Test modal stacking:** Verify View Proof appears above Credential Detail
 
 ---
 
@@ -146,11 +167,16 @@ Before each user test session:
 
 ## 🔄 Version History
 
-**v6.4 - User Testing Optimizations (Current)**
+**v6.5 - Complete Modal Z-Index Fix (Current)**
+- CostConfirmationModal z-index: z-50 → z-[70]
+- CreditsPanel z-index: z-50 → z-[80]
+- Complete progressive z-index hierarchy
+
+**v6.4 - User Testing Optimizations**
 - URL parameter support
 - Reset Demo button
 - Keyboard shortcuts
-- Modal z-index fixes
+- Initial modal z-index improvements
 - "Enterprise" → "Organization"
 
 **v6.3 - Version History & Documentation**
@@ -166,9 +192,9 @@ Before each user test session:
 
 ## 📁 Files
 
-- `evercred-prototype-v6.4-user-testing.html` - Complete prototype
-- `USER_TESTING_GUIDE_v6.4.md` - This guide
+- `evercred-prototype-v6.5-user-testing.html` - Complete prototype
+- `USER_TESTING_GUIDE_v6.5.md` - This guide
 
 ---
 
-*Deploy `evercred-prototype-v6.4-user-testing.html` to Railway to update the production prototype.*
+*Deploy `evercred-prototype-v6.5-user-testing.html` to Railway to update the production prototype.*
