@@ -106,7 +106,7 @@ Five upload states:
 4. Find the empty packet (Dr. Michael Chen)
 
 ### Scenario 2: Create a Packet for a Practitioner
-1. Click Settings icon in sidebar
+1. Click the orange tile in the sidebar
 2. Go to "Manage Practitioners" tab
 3. Find a practitioner without a packet (Emily Williams or Robert Martinez)
 4. Click the send icon (📤) to create packet
