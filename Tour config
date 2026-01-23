@@ -1,16 +1,17 @@
-// EVERCRED TOUR CONFIGURATION
+// EVERCRED TOUR CONFIGURATION v6.6
 // Edit this file to customize the tour experience without touching the main prototype
+// Updated for Organization Dashboard & Seat Management features
 
 const TOUR_CONFIG = {
   // Welcome Modal Content
   welcome: {
     title: "Welcome to Evercred",
-    subtitle: "User Research Prototype",
+    subtitle: "User Research Prototype v6.6",
     aboutHeading: "About This Session",
-    aboutDescription: "This is an interactive prototype of Evercred's enterprise credential verification platform. You'll be reviewing a credential packet for Dr. Leah Houston that has been shared with Harbor UCLA Medical Center.",
+    aboutDescription: "This is an interactive prototype of Evercred's organization credential verification platform. You'll start at the Organization Dashboard where you can see all credential packets, then explore managing practitioners and creating packets.",
     roleInfo: [
       { label: "Your role", value: "Credentialing Specialist at Harbor UCLA Medical Center" },
-      { label: "Task", value: "Review and verify physician credentials for privileging" },
+      { label: "New in v6.6", value: "Organization Dashboard, Manage Practitioners, Create Packet flow" },
       { label: "Estimated time", value: "10-15 minutes" }
     ],
     thinkAloudTitle: "Please think aloud",
@@ -21,86 +22,96 @@ const TOUR_CONFIG = {
     }
   },
 
-  // Tour Stops Configuration
+  // Tour Stops Configuration - Updated for v6.6 Org Dashboard Flow
   stops: [
     {
-      id: 'overview',
-      title: 'Overview Dashboard',
-      description: 'This is your main view showing all credentials at a glance. Notice the verification status badges and the overall completion metrics.',
+      id: 'org-dashboard',
+      title: '1. Organization Dashboard',
+      description: 'This is your home base - the first screen you see when logging in. It shows all credential packets that have been shared with your organization.',
       tasks: [
-        'Scan the credential cards - what stands out to you?',
-        'Check the verification status indicators',
-        'Look at the activity feed on the right'
+        'Scan the packets list - notice the different statuses',
+        'Find the "Empty packet" (Dr. Michael Chen)',
+        'Notice the credential count varies by packet'
+      ]
+    },
+    {
+      id: 'manage-practitioners',
+      title: '2. Manage Practitioners',
+      description: 'Click the Settings icon in the left sidebar to access practitioner seat management. Here you can see all sponsored practitioners and their packet status.',
+      tasks: [
+        'Click the Settings (gear) icon in the left sidebar',
+        'Review the Active vs Inbound tabs',
+        'Notice the Seat Overview showing assigned/available seats'
+      ]
+    },
+    {
+      id: 'create-packet',
+      title: '3. Create Packet for Practitioner',
+      description: 'For practitioners without packets, you can create one on their behalf. Look for the send icon (📤) in the Packet column.',
+      tasks: [
+        'Find a practitioner without a packet (Emily Williams or Robert Martinez)',
+        'Click the send icon to create a packet',
+        'Review the confirmation modal and click "Create Packet"'
+      ]
+    },
+    {
+      id: 'empty-packet',
+      title: '4. Empty Packet View',
+      description: 'After creating a packet, you land on the empty packet view. This is where you\'ll upload credentials on behalf of the practitioner.',
+      tasks: [
+        'Notice the "Empty Packet" badge',
+        'Find the "Upload Credential" button',
+        'Click it to start adding credentials'
+      ]
+    },
+    {
+      id: 'upload-credential',
+      title: '5. Upload Credential with OCR',
+      description: 'Upload credential documents and watch OCR automatically extract the data. The system supports PDF, PNG, and JPG files up to 25MB.',
+      tasks: [
+        'Select or drag a file (this is simulated)',
+        'Watch the upload progress and OCR processing',
+        'Review the extracted fields before saving'
+      ]
+    },
+    {
+      id: 'open-packet',
+      title: '6. Open Existing Packet',
+      description: 'From the dashboard, click "Open Packet" on any practitioner to view their full credential packet with verification details.',
+      tasks: [
+        'Go back to Dashboard (click Dashboard in sidebar)',
+        'Click "Open Packet" on Dr. Leah Houston',
+        'Explore the packet detail view'
       ]
     },
     {
       id: 'credential-card',
-      title: 'Credential Cards',
+      title: '7. Credential Cards & Verification',
       description: 'Each credential shows key information, verification status, and available actions. Verified credentials show proof of verification.',
       tasks: [
         'Click "View Proof" on the California Medical License',
         'Notice the verification details and AI agent notes',
-        'Check the timestamp and verification source'
-      ]
-    },
-    {
-      id: 'verify-action',
-      title: 'Token-Based Verification',
-      description: 'You can trigger AI-powered verification for unverified credentials. This uses "tokens" which represent the cost of automated verification. Simple credentials cost 3-5 tokens, complex verifications (work history, education) cost 20-80 tokens.',
-      tasks: [
-        'Click "Verify Now" on an unverified credential',
-        'Review the cost confirmation modal',
-        'Notice how tokens are deducted from your balance'
+        'Try "Verify Now" on an unverified credential'
       ]
     },
     {
       id: 'tokens-panel',
-      title: 'Token Balance & Progress',
-      description: 'Click on your token balance to see verifications in progress, completed verifications, and purchase more tokens when needed.',
+      title: '8. Token Balance & Progress',
+      description: 'Click on your token balance in the header to see verifications in progress and completed verifications.',
       tasks: [
         'Click the token badge in the header',
-        'Review verifications in progress with status bars',
+        'Review verifications in progress',
         'Notice the "Buy More Credits" option'
       ]
     },
     {
       id: 'activity-feed',
-      title: 'Activity Feed & Audit Trail',
-      description: 'The activity feed shows a complete audit trail of all actions taken on this credential packet. This meets Joint Commission and NCQA requirements.',
+      title: '9. Activity Feed & Audit Trail',
+      description: 'The activity feed shows a complete audit trail of all actions. This meets Joint Commission and NCQA compliance requirements.',
       tasks: [
         'Review the different types of activities',
-        'Notice the attention level indicators (red = urgent)',
-        'Look for items requiring your action'
-      ]
-    },
-    {
-      id: 'sidebar-navigation',
-      title: 'Navigation & Organization',
-      description: 'Credentials are organized by category in the sidebar. The progress indicators show verification completeness for each section.',
-      tasks: [
-        'Click through different sections (Licenses, Boards, Education)',
-        'Notice how credentials are grouped logically',
-        'Check the verification count for each section'
-      ]
-    },
-    {
-      id: 'protected-data',
-      title: 'Protected Information',
-      description: 'Sensitive information like SSN is protected using HashiCorp Vault encryption. The mask icon indicates secured fields.',
-      tasks: [
-        'Navigate to Contact & Demographics',
-        'Look for the mask icon next to SSN',
-        'Click the mask to see security details'
-      ]
-    },
-    {
-      id: 'request-credentials',
-      title: 'Requesting Additional Credentials',
-      description: 'If you need credentials that weren\'t included in the original packet, you can request them directly from the physician.',
-      tasks: [
-        'Look for the "Request Credentials" button',
-        'Click it to see what credentials you can request',
-        'Notice you can add notes about why you need them'
+        'Notice items requiring your attention',
+        'Look for the "Request Credentials" option'
       ]
     }
   ],
@@ -116,15 +127,51 @@ const TOUR_CONFIG = {
     tryThisHeading: "Try this:"
   },
 
-  // Researcher Notes Panel
-  researcherPanel: {
-    title: "Researcher Notes",
-    timeLabel: "Session time:",
-    observationTips: "Observation tips: Note reactions, pain points, questions, confusion moments, unexpected behaviors, and direct quotes.",
-    placeholder: "00:00 - User first impression\n- Noticed verification badges immediately\n- Asked about token cost\n\n02:30 - Activity feed exploration\n- Appreciated the audit trail\n- \"This would save us during Joint Commission\"\n\n05:15 - Verification workflow\n- Hesitated at cost confirmation\n- Questioned AI accuracy",
-    exportButton: "Export Notes",
-    openButtonLabel: "Notes"
-  }
+  // Keyboard Shortcuts
+  keyboardShortcuts: {
+    toggleTour: "T",
+    minimizeTour: "Escape",
+    resetDemo: "Ctrl+Shift+R"
+  },
+
+  // Navigation Flow Reference
+  navigationFlow: `
+    ┌─────────────────────────────────────────────────────────────┐
+    │  ORG SIDEBAR                                                 │
+    │  ├── Dashboard (credential packets list)                    │
+    │  └── Settings (manage practitioners)                         │
+    └─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  DASHBOARD VIEW                                              │
+    │  - See all credential packets                                │
+    │  - Click "Open Packet" → Packet Detail or Empty Packet       │
+    └─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  SETTINGS → MANAGE PRACTITIONERS                             │
+    │  - View sponsored practitioners                              │
+    │  - Click send icon → Create Packet Modal                     │
+    │  - Click external link icon → Open existing Packet           │
+    └─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  EMPTY PACKET VIEW                                           │
+    │  - Shows practitioner info                                   │
+    │  - "Upload Credential" CTA                                   │
+    │  - Click → Upload Credential Modal                           │
+    └─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  PACKET DETAIL VIEW                                          │
+    │  - Full credential list with verification                    │
+    │  - All verification features (proof, PSV, etc.)              │
+    └─────────────────────────────────────────────────────────────┘
+  `
 };
 
 // Export for use in main prototype
