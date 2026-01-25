@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evercred Credential Verification - Research Prototype v6.6</title>
+  <title>Evercred Credential Verification - Research Prototype v6.7</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -1181,7 +1181,7 @@
                 <span className="w-8 h-8 text-white"><Icon name="shield" /></span>
               </div>
               <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome to Evercred</h2>
-              <p className="text-lg text-slate-600">User Research Prototype v6.6</p>
+              <p className="text-lg text-slate-600">User Research Prototype v6.7</p>
             </div>
             
             <div className="bg-indigo-50 rounded-xl p-6 mb-6">
@@ -1195,7 +1195,7 @@
               </p>
               <div className="space-y-2 text-sm text-slate-600">
                 <p><strong>Your role:</strong> Credentialing Specialist at Harbor UCLA Medical Center</p>
-                <p><strong>New in v6.6:</strong> Organization Dashboard, Manage Practitioners, Create Packet flow</p>
+                <p><strong>New in v6.7:</strong> Activity Feed deadline filters (Overdue, Due Today, This Week, Next Week)</p>
                 <p><strong>Estimated time:</strong> 10-15 minutes</p>
               </div>
             </div>
@@ -1602,6 +1602,27 @@
     // VERSION HISTORY & RELEASE NOTES
     // =====================================================
     const VERSION_HISTORY = [
+      {
+        version: '6.7',
+        date: 'January 25, 2026',
+        title: 'Activity Feed Deadline Filters',
+        highlights: [
+          'Deadline-based filtering: All, Overdue, Due Today, This Week, Next Week',
+          'Dynamic badge counts showing items in each filter category',
+          'Smart deadline display: "Overdue by 2 days", "Due tomorrow", etc.',
+          'Visual highlighting for overdue items with red background'
+        ],
+        changes: [
+          { type: 'new', text: 'Deadline filter bar in Packet Activity Feed' },
+          { type: 'new', text: 'Filter options: All, Overdue, Due Today, This Week, Next Week' },
+          { type: 'new', text: 'Real-time badge counts derived from activity data' },
+          { type: 'new', text: 'Smart deadline formatting with relative dates' },
+          { type: 'new', text: 'Overdue items highlighted with red styling' },
+          { type: 'new', text: 'Empty state with "Show all activities" when filter has no matches' },
+          { type: 'improved', text: 'Activity data now includes responseDueDate field' },
+          { type: 'improved', text: 'Filter state resets expand/collapse independently' }
+        ]
+      },
       {
         version: '6.6',
         date: 'January 23, 2026',
@@ -2677,9 +2698,74 @@
     // =====================================================
     // PACKET ACTIVITY FEED (NEW - Dashboard level)
     // =====================================================
+    // =====================================================
+    // PACKET ACTIVITY FEED WITH DEADLINE FILTERS (v6.7)
+    // =====================================================
     const PacketActivityFeed = ({ activities }) => {
       const [expanded, setExpanded] = useState(false);
-      const displayedActivities = expanded ? activities : activities.slice(0, 5);
+      const [activeFilter, setActiveFilter] = useState('all');
+      
+      // Helper: Get deadline status for an activity
+      const getDeadlineStatus = (activity) => {
+        if (!activity.responseDueDate) return 'none';
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDate = new Date(activity.responseDueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        const diffDays = Math.floor((dueDate - today) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) return 'overdue';
+        if (diffDays === 0) return 'today';
+        if (diffDays <= 7) return 'thisWeek';
+        if (diffDays <= 14) return 'nextWeek';
+        return 'later';
+      };
+      
+      // Helper: Format deadline for display
+      const formatDeadlineDisplay = (activity) => {
+        if (!activity.responseDueDate) return null;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dueDate = new Date(activity.responseDueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        const diffDays = Math.floor((dueDate - today) / (1000 * 60 * 60 * 24));
+        const dateStr = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        if (diffDays < 0) return { text: `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''}`, style: 'text-red-600 bg-red-50' };
+        if (diffDays === 0) return { text: 'Due today', style: 'text-amber-600 bg-amber-50' };
+        if (diffDays === 1) return { text: 'Due tomorrow', style: 'text-amber-600 bg-amber-50' };
+        if (diffDays <= 7) return { text: `Due in ${diffDays} days (${dateStr})`, style: 'text-blue-600 bg-blue-50' };
+        return { text: `Due ${dateStr}`, style: 'text-slate-600 bg-slate-50' };
+      };
+      
+      // Calculate filter counts
+      const filterCounts = React.useMemo(() => {
+        const counts = { all: 0, overdue: 0, today: 0, thisWeek: 0, nextWeek: 0 };
+        activities.forEach(activity => {
+          counts.all++;
+          const status = getDeadlineStatus(activity);
+          if (status === 'overdue') counts.overdue++;
+          if (status === 'today') counts.today++;
+          if (status === 'thisWeek') counts.thisWeek++;
+          if (status === 'nextWeek') counts.nextWeek++;
+        });
+        return counts;
+      }, [activities]);
+      
+      // Filter activities based on active filter
+      const filteredActivities = React.useMemo(() => {
+        if (activeFilter === 'all') return activities;
+        return activities.filter(activity => {
+          const status = getDeadlineStatus(activity);
+          return status === activeFilter;
+        });
+      }, [activities, activeFilter]);
+      
+      const displayedActivities = expanded ? filteredActivities : filteredActivities.slice(0, 5);
       
       const getActivityIcon = (type) => {
         const lowerType = type?.toLowerCase() || '';
@@ -2714,7 +2800,9 @@
           'credential_uploaded': 'upload',
           'ocr_complete': 'scan',
           'issue_flagged': 'alert-triangle',
-          'response_received': 'inbox'
+          'response_received': 'inbox',
+          'cme documentation': 'book-open',
+          'reference check': 'users'
         };
         const key = Object.keys(iconMap).find(k => lowerType.includes(k));
         return iconMap[key] || 'activity';
@@ -2740,8 +2828,18 @@
         }
       };
       
+      // Filter button configuration
+      const filters = [
+        { id: 'all', label: 'All', count: filterCounts.all },
+        { id: 'overdue', label: 'Overdue', count: filterCounts.overdue, urgent: true },
+        { id: 'today', label: 'Due Today', count: filterCounts.today },
+        { id: 'thisWeek', label: 'This Week', count: filterCounts.thisWeek },
+        { id: 'nextWeek', label: 'Next Week', count: filterCounts.nextWeek }
+      ];
+      
       return (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          {/* Header */}
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-semibold text-slate-900 flex items-center gap-2">
               <span className="w-5 h-5 text-indigo-600"><Icon name="activity" /></span>
@@ -2750,58 +2848,120 @@
             <span className="text-xs text-slate-500">{activities.length} events</span>
           </div>
           
-          <div className="p-4">
-            <div className="space-y-3">
-              {displayedActivities.map((activity, idx) => (
-                <div key={idx} className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full ${activity.attentionLevel ? getAttentionLevelColor(activity.attentionLevel) : getActivityColor(activity.color)} flex-shrink-0 mt-2`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-4 h-4 ${activity.attentionLevel ? getAttentionLevelColor(activity.attentionLevel).replace('bg-', 'text-') : getActivityColor(activity.color).replace('bg-', 'text-')}`}>
-                        <Icon name={getActivityIcon(activity.type)} />
-                      </span>
-                      <p className="text-sm text-slate-900">{activity.description}</p>
-                    </div>
-                    {activity.items && activity.items.length > 0 && (
-                      <ul className="mt-2 ml-6 space-y-1">
-                        {activity.items.slice(0, 4).map((item, i) => (
-                          <li key={i} className="text-xs text-slate-600 flex items-center gap-2">
-                            <span className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                        {activity.items.length > 4 && (
-                          <li className="text-xs text-indigo-600 font-medium">
-                            + {activity.items.length - 4} more
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                    <p className="text-xs text-slate-400 mt-0.5">{activity.timestamp}</p>
-                    {activity.actor && (
-                      <p className="text-xs text-slate-500 mt-0.5">By: {activity.actor}</p>
-                    )}
-                  </div>
-                  {activity.status && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      activity.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
-                      activity.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                      activity.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                      activity.status === 'Flagged' ? 'bg-red-100 text-red-700' :
-                      activity.status === 'Alert' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-slate-100 text-slate-600'
-                    }`}>
-                      {activity.status}
-                    </span>
-                  )}
-                </div>
+          {/* Filter Bar */}
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-medium text-slate-500 mr-1">Filter by deadline:</span>
+              {filters.map(filter => (
+                <button
+                  key={filter.id}
+                  onClick={() => setActiveFilter(filter.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    activeFilter === filter.id
+                      ? 'bg-indigo-600 text-white ring-2 ring-indigo-600 ring-offset-1'
+                      : filter.urgent && filter.count > 0
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {filter.label}
+                  <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold ${
+                    activeFilter === filter.id
+                      ? 'bg-white/20 text-white'
+                      : filter.urgent && filter.count > 0
+                        ? 'bg-red-200 text-red-800'
+                        : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    {filter.count}
+                  </span>
+                </button>
               ))}
             </div>
+          </div>
+          
+          {/* Activity List */}
+          <div className="p-4">
+            {filteredActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="w-6 h-6 text-slate-400"><Icon name="inbox" /></span>
+                </div>
+                <p className="text-sm text-slate-500 mb-2">No activities match this filter</p>
+                <button 
+                  onClick={() => setActiveFilter('all')}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                  Show all activities
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayedActivities.map((activity, idx) => {
+                  const deadlineInfo = formatDeadlineDisplay(activity);
+                  const isOverdue = getDeadlineStatus(activity) === 'overdue';
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${
+                        isOverdue ? 'bg-red-50 border border-red-100' : ''
+                      }`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${activity.attentionLevel ? getAttentionLevelColor(activity.attentionLevel) : getActivityColor(activity.color)} flex-shrink-0 mt-2`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`w-4 h-4 ${activity.attentionLevel ? getAttentionLevelColor(activity.attentionLevel).replace('bg-', 'text-') : getActivityColor(activity.color).replace('bg-', 'text-')}`}>
+                            <Icon name={getActivityIcon(activity.type)} />
+                          </span>
+                          <p className="text-sm text-slate-900">{activity.description}</p>
+                          {deadlineInfo && (
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${deadlineInfo.style}`}>
+                              {deadlineInfo.text}
+                            </span>
+                          )}
+                        </div>
+                        {activity.items && activity.items.length > 0 && (
+                          <ul className="mt-2 ml-6 space-y-1">
+                            {activity.items.slice(0, 4).map((item, i) => (
+                              <li key={i} className="text-xs text-slate-600 flex items-center gap-2">
+                                <span className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
+                                {item}
+                              </li>
+                            ))}
+                            {activity.items.length > 4 && (
+                              <li className="text-xs text-indigo-600 font-medium">
+                                + {activity.items.length - 4} more
+                              </li>
+                            )}
+                          </ul>
+                        )}
+                        <p className="text-xs text-slate-400 mt-0.5">{activity.timestamp}</p>
+                        {activity.actor && (
+                          <p className="text-xs text-slate-500 mt-0.5">By: {activity.actor}</p>
+                        )}
+                      </div>
+                      {activity.status && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          activity.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                          activity.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                          activity.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                          activity.status === 'Flagged' ? 'bg-red-100 text-red-700' :
+                          activity.status === 'Alert' ? 'bg-red-100 text-red-700' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {activity.status}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             
-            {activities.length > 5 && (
+            {filteredActivities.length > 5 && (
               <button onClick={() => setExpanded(!expanded)} className="w-full mt-4 py-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center justify-center gap-1 border-t border-slate-100 pt-3">
                 <span className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`}><Icon name="chevron-down" /></span>
-                {expanded ? 'Show Less' : `View All ${activities.length} Events`}
+                {expanded ? 'Show Less' : `View All ${filteredActivities.length} Events`}
               </button>
             )}
           </div>
@@ -3713,6 +3873,7 @@
       ];
       
       // Packet-level activity feed (from PSV requirements - Activity Feed tab)
+      // Activity feed with due dates for filtering (v6.7 - deadline filters)
       const packetActivities = [
         {
           type: 'Additional Credentials Requested',
@@ -3721,7 +3882,8 @@
           status: 'Pending',
           attentionLevel: 'High',
           actor: 'Maria Santos',
-          items: ['Medical Degree', 'DEA Registration', 'Fellowship Certificate', 'CME/CE Credits', 'BLS Certification']
+          items: ['Medical Degree', 'DEA Registration', 'Fellowship Certificate', 'CME/CE Credits', 'BLS Certification'],
+          responseDueDate: '2026-01-23' // Overdue
         },
         {
           type: 'Verification Complete',
@@ -3729,7 +3891,8 @@
           timestamp: 'Today at 11:45 AM',
           status: 'Completed',
           attentionLevel: 'Low',
-          actor: 'Evercred AI Agent'
+          actor: 'Evercred AI Agent',
+          responseDueDate: null // No response needed
         },
         {
           type: 'Verification In Progress',
@@ -3737,7 +3900,17 @@
           timestamp: 'Today at 9:30 AM',
           status: 'In Progress',
           attentionLevel: 'Low',
-          actor: 'System'
+          actor: 'System',
+          responseDueDate: '2026-01-25' // Due today
+        },
+        {
+          type: 'Response Overdue',
+          description: 'Malpractice insurance document still pending from physician',
+          timestamp: 'Jan 20, 2026 10:00 AM',
+          status: 'Alert',
+          attentionLevel: 'Critical',
+          actor: 'System',
+          responseDueDate: '2026-01-18' // Overdue
         },
         {
           type: 'Wallet Opened',
@@ -3745,7 +3918,8 @@
           timestamp: 'Jan 14, 2026 4:15 PM',
           status: 'Completed',
           attentionLevel: 'Low',
-          actor: 'System'
+          actor: 'System',
+          responseDueDate: null
         },
         {
           type: 'Credentials Shared',
@@ -3754,7 +3928,8 @@
           status: 'Completed',
           attentionLevel: 'Low',
           actor: 'Dr. Leah Houston',
-          items: ['Medical License - California', 'Medical License - New York', 'Board Certification - Emergency Medicine', 'Residency Certificate']
+          items: ['Medical License - California', 'Medical License - New York', 'Board Certification - Emergency Medicine', 'Residency Certificate'],
+          responseDueDate: null
         },
         {
           type: 'Review Complete',
@@ -3762,7 +3937,8 @@
           timestamp: 'Jan 13, 2026 5:30 PM',
           status: 'Completed',
           attentionLevel: 'Low',
-          actor: 'Maria Santos'
+          actor: 'Maria Santos',
+          responseDueDate: null
         },
         {
           type: 'Request Sent',
@@ -3771,7 +3947,26 @@
           status: 'Completed',
           attentionLevel: 'Medium',
           actor: 'Maria Santos',
-          items: ['Medical License - California', 'Medical License - New York', 'Board Certification', 'Residency Certificate']
+          items: ['Medical License - California', 'Medical License - New York', 'Board Certification', 'Residency Certificate'],
+          responseDueDate: '2026-01-27' // This week
+        },
+        {
+          type: 'CME Documentation',
+          description: 'CME certificates requested for continuing education verification',
+          timestamp: 'Jan 8, 2026 2:00 PM',
+          status: 'Pending',
+          attentionLevel: 'Medium',
+          actor: 'System',
+          responseDueDate: '2026-01-30' // This week
+        },
+        {
+          type: 'Reference Check',
+          description: 'Reference verification initiated for 3 professional references',
+          timestamp: 'Jan 5, 2026 11:00 AM',
+          status: 'In Progress',
+          attentionLevel: 'Low',
+          actor: 'System',
+          responseDueDate: '2026-02-05' // Next week
         }
       ];
       
@@ -4114,7 +4309,7 @@
                     title="View version information and release notes"
                   >
                   <span className="w-4 h-4 text-slate-600 group-hover:text-slate-900"><Icon name="info" /></span>
-                  <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900">v6.6</span>
+                  <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900">v6.7</span>
                 </button>
                 <button className="p-2 hover:bg-slate-100 rounded-lg relative">
                   <span className="w-5 h-5 text-slate-500"><Icon name="bell" /></span>
